@@ -54,11 +54,18 @@ function hostContext({ webServer = true, tools = true, profileContext = null, th
   }
   check('apply activates without throwing', threw === null, threw?.message)
   check('one prefix route is registered', seen.routes.length === 1 && seen.routes[0].kind === 'prefix', JSON.stringify(seen.routes.map(route => `${route.kind} ${route.path}`)))
-  check('the route is the one the page calls', seen.routes[0]?.path === BASE_PATH, seen.routes[0]?.path)
+  check('the route uses the fork’s own prefix', BASE_PATH === '/dsh-profile-gist-sync-plus' && seen.routes[0]?.path === BASE_PATH, seen.routes[0]?.path)
   check('every effect returned a disposer', seen.effects.length === 2, seen.effects.join(', '))
   check('the tool is registered once', seen.tools.length === 1)
   const definition = seen.tools[0]
-  check('the tool is the documented one', definition?.name === 'config_backup', definition?.name)
+  check('the tool has its own name, distinct from upstream', definition?.name === 'config_backup_plus', definition?.name)
+  const properties = definition?.parameters?.properties ?? {}
+  check('the agent cannot confirm a plugin install or approve builds',
+    definition?.parameters?.additionalProperties === false && ['confirm', 'planId', 'approvedBuilds'].every(key => !Object.hasOwn(properties, key)))
+  let installError = null
+  try { await definition?.execute({ action: 'sync_install', confirm: true, planId: 'test-plan' }) }
+  catch (error) { installError = error }
+  check('an install/confirm request is rejected even when passed directly to the tool', installError?.code === 'invalid')
   check('and it offers every action the README lists',
     JSON.stringify(definition?.parameters?.properties?.action?.enum) === JSON.stringify(['status', 'export', 'gist_upload', 'gist_read', 'restore', 'undo']),
     JSON.stringify(definition?.parameters?.properties?.action?.enum))
@@ -82,8 +89,8 @@ function hostContext({ webServer = true, tools = true, profileContext = null, th
   check('a fresh profile has no cloud copy', status.payload.cloud.gistId === null && status.payload.cloud.lastUpload === null)
   const unknown = await callRoute(served.base, `${BASE_PATH}/api/nope`)
   check('an unknown subpath answers JSON, not a crash', unknown.status === 404 && unknown.payload.code === 'notfound', JSON.stringify(unknown.payload))
-  const outside = await callRoute(served.base, '/somewhere-else/api/status')
-  check('a path outside the plugin prefix is refused', outside.status === 404, String(outside.status))
+  const outside = await callRoute(served.base, '/dsh-profile-gist-sync/api/status')
+  check('the Plus handler does not claim the upstream route', outside.status === 404, String(outside.status))
   served.close()
 }
 

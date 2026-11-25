@@ -1,18 +1,21 @@
 {
   "meta": {
-    "title": "配置同步",
-    "description": "一键把本机配置上传到云端备份，或从云端同步回本机；随时显示两边是否一致。"
+    "title": "配置同步 Plus",
+    "description": "将 DSH 配置备份到 GitHub Gist。在「设置 → 内置插件 → 配置同步 Plus」先预览文件变更和缺失插件，确认后再恢复并安装。只使用可信 Gist；撤销只恢复配置，不卸载软件包。"
   },
-  "tab": "配置同步",
-  "title": "配置同步",
-  "subtitle": "把本机配置传到云端备份，或从云端同步回来。",
+  "tab": "配置同步 Plus",
+  "title": "配置同步 Plus",
+  "subtitle": "备份当前配置，或预览从可信 GitHub Gist 恢复的变更。",
   "plugins": "插件",
-  "pluginsHint": "备份不带插件本体。同步之后这里会列出还差的插件，可以一次装完。",
+  "pluginsHint": "备份不含插件本体。请先核对缺失插件的名称和来源，再决定是否安装。",
   "pluginsInstall": "安装缺的插件",
-  "newMachineTitle": "第一次在另一台电脑上用",
-  "newMachineStep1": "在这台电脑装好这个插件，然后重启 DSH。",
-  "newMachineStep2": "用同一个 GitHub 账号给令牌：secret Gist 只有它的主人能通过 API 读到。",
-  "newMachineStep3": "打开这一页，点「从云端同步」，把配置取回来。",
-  "newMachineStep4": "同步后这里会列出还差的插件，点「安装缺的插件」一次装完，再重启 DSH。",
-  "tokenHelp": "令牌的三种给法和 gist 权限写在出错提示里。"
+  "setupTitle": "新机恢复：配置和插件",
+  "previewAction": "预览恢复",
+  "confirmAction": "确认恢复配置并安装插件",
+  "newMachineTitle": "在新机器上使用",
+  "newMachineStep1": "在目标配置中安装「配置同步 Plus」。",
+  "newMachineStep2": "输入可信备份的 Gist ID 或链接，并提供有 Gist 权限的 GitHub 令牌。",
+  "newMachineStep3": "点「预览恢复」，核对文件变更、插件来源和需手动处理的项目。",
+  "newMachineStep4": "信任该计划才确认。查看结果，单独处理待审批的构建脚本，并按提示重启 DSH。",
+  "tokenHelp": "可使用页面令牌栏、宿主环境的 DSH_GITHUB_TOKEN / GITHUB_TOKEN 或已登录的 gh CLI；不要分享令牌或 Gist 链接。"
 }

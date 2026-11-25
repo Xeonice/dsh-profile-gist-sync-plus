@@ -7,16 +7,17 @@
  * unpacks it somewhere else, and runs the plugin from THAT tree — then asserts
  * the package carries no author-specific state.
  *
- * Skipped (not failed) when neither npm nor pnpm is available.
+ * Without npm or pnpm, stage the same files in a temporary directory.
  */
 import { execFileSync } from 'node:child_process'
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs'
-import { join } from 'node:path'
-import { createReport, makeProfile, tempDir, useProfile, callRoute, serveHandler } from './harness.mjs'
+import { cpSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { createReport, makeProfile, tempDir, useProfile, callRoute, serveHandler, TEST_GIST_ID } from './harness.mjs'
 
 const { check, finish } = createReport('package')
 
-const PLUGIN = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+const PLUGIN = fileURLToPath(new URL('..', import.meta.url))
 const manifest = JSON.parse(readFileSync(join(PLUGIN, 'package.json'), 'utf8'))
 const workspace = tempDir('dpg-pack-')
 const packDir = join(workspace, 'pack')
@@ -32,50 +33,41 @@ mkdirSync(installed, { recursive: true })
  */
 function pack() {
   const commands = process.platform === 'win32' ? ['npm.cmd', 'pnpm.cmd'] : ['npm', 'pnpm']
+  const env = {
+    ...process.env, HOME: workspace, USERPROFILE: workspace,
+    npm_config_userconfig: join(workspace, 'empty.npmrc'), npm_config_cache: join(workspace, 'cache'),
+    npm_config_offline: 'true', npm_config_ignore_scripts: 'true', COREPACK_ENABLE_NETWORK: '0',
+  }
   for (const command of commands) {
     try {
-      execFileSync(command, ['pack', '--pack-destination', packDir], { cwd: PLUGIN, stdio: ['ignore', 'pipe', 'pipe'] })
-      const tarballs = readdirSync(packDir).filter(name => name.endsWith('.tgz'))
-      if (tarballs.length > 0) {
-        execFileSync('tar', ['-xzf', join(packDir, tarballs[0]), '-C', installed, '--strip-components=1'], { stdio: ['ignore', 'pipe', 'pipe'] })
-        return { mode: 'tarball', by: command, size: statSync(join(packDir, tarballs[0])).size }
-      }
-    } catch {
-      // Try the next package manager, then the manifest fallback.
+      execFileSync(command, ['pack', '--pack-destination', packDir], { cwd: PLUGIN, env, stdio: ['ignore', 'pipe', 'pipe'] })
+    } catch (error) {
+      if (error.code === 'ENOENT' || (process.platform === 'win32' && error.code === 'EINVAL')) continue
+      throw error // An available packager failing must not pass as a staged-copy success.
+    }
+    const tarballs = readdirSync(packDir).filter(name => name.endsWith('.tgz'))
+    if (tarballs.length !== 1) throw new Error(`expected one tarball, got ${tarballs.length}`)
+    const tarball = join(packDir, tarballs[0])
+    execFileSync('tar', ['-xzf', tarball, '-C', installed, '--strip-components=1'], { stdio: ['ignore', 'pipe', 'pipe'] })
+    return { mode: 'tarball', by: command, size: statSync(tarball).size }
+  }
+  // Without a packager, expand the simple directory/*.ext patterns used by
+  // this manifest. package.json is included automatically in a real pack.
+  for (const entry of ['package.json', ...(manifest.files ?? [])]) {
+    const [directory, pattern] = entry.split('/')
+    const paths = pattern?.startsWith('*.')
+      ? readdirSync(join(PLUGIN, directory)).filter(name => name.endsWith(pattern.slice(1))).map(name => join(directory, name))
+      : [entry]
+    for (const relative of paths) {
+      const target = join(installed, relative)
+      mkdirSync(dirname(target), { recursive: true })
+      cpSync(join(PLUGIN, relative), target, { recursive: true })
     }
   }
-  let staged = 0
-  for (const entry of manifest.files ?? []) {
-    if (entry.includes('*')) {
-      const [directory, pattern] = entry.split('/')
-      const suffix = pattern.replace('*', '')
-      for (const name of readdirSync(join(PLUGIN, directory))) {
-        if (!name.endsWith(suffix)) continue
-        mkdirSync(join(installed, directory), { recursive: true })
-        cpSync(join(PLUGIN, directory, name), join(installed, directory, name))
-        staged += 1
-      }
-      continue
-    }
-    const source = join(PLUGIN, entry)
-    if (!existsSync(source)) continue
-    if (statSync(source).isDirectory()) {
-      cpSync(source, join(installed, entry), { recursive: true })
-      staged += 1
-    } else {
-      cpSync(source, join(installed, entry))
-      staged += 1
-    }
-  }
-  return staged === 0 ? null : { mode: 'manifest', by: 'the files list', size: null }
+  return { mode: 'manifest', by: 'the files list', size: null }
 }
 
 const packed = pack()
-if (packed === null) {
-  console.log('skip  the manifest lists no files to stage and no package manager is available')
-  console.log('\npackage: SKIPPED')
-  process.exit(0)
-}
 check(packed.mode === 'tarball'
   ? `the package can be packed (${packed.by})`
   : `the manifest's files list only (no package manager; staged ${packed.by})`, true)
@@ -87,21 +79,34 @@ const shipped = listing(installed)
 // ---- everything the runtime needs is inside the tarball ----------------
 check('the host entry is shipped', shipped.includes('index.js'))
 check('every lib module is shipped',
-  shipped.filter(file => file.startsWith('lib/')).length === readdirSync(join(PLUGIN, 'lib')).filter(name => name.endsWith('.js')).length,
+  readdirSync(join(PLUGIN, 'lib')).filter(name => name.endsWith('.js')).every(name => shipped.includes(`lib/${name}`)),
   shipped.filter(file => file.startsWith('lib/')).join(', '))
 check('the client half is shipped', shipped.includes('client.js'))
 check('the bundle patch is shipped', shipped.includes('cordis.patch.yml'))
-check('the locales are shipped', shipped.includes('locale/zh.json') && shipped.includes('locale/en.json'))
-check('the icon and the readme are shipped', shipped.includes('icon.svg') && shipped.includes('README.md'))
-check('the licence travels with it', shipped.includes('LICENSE'))
+const packedManifest = JSON.parse(readFileSync(join(installed, 'package.json'), 'utf8'))
+check('the packed manifest names the independent fork and version',
+  packedManifest.name === 'dsh-profile-gist-sync-plus' && packedManifest.version === '1.2.0'
+  && packedManifest.repository.url === 'git+https://github.com/Xeonice/dsh-profile-gist-sync-plus.git')
+const patch = readFileSync(join(installed, 'cordis.patch.yml'), 'utf8')
+check('the bundle inserts the fork under its own row and module name',
+  /^\s*- id: dsh-profile-gist-sync-plus$/m.test(patch) && /^\s*name: dsh-profile-gist-sync-plus$/m.test(patch))
+check('both shipped locales distinguish the fork from upstream',
+  [['zh', '配置同步 Plus'], ['en', 'Config sync Plus']].every(([lang, title]) => {
+    const { meta } = JSON.parse(readFileSync(join(installed, 'locale', `${lang}.json`), 'utf8'))
+    return meta.title === title && meta.description.includes('Gist')
+  }))
+check('both icon forms and the README are shipped', ['icon.svg', 'assets/icon-256.png', 'README.md'].every(file => shipped.includes(file)))
+check('the tarball does not advertise or include upstream screenshots', !shipped.some(file => /screenshot/i.test(file)))
+check('the original author and MIT licence travel with it', packedManifest.author === 'Meta-Virgo' && packedManifest.license === 'MIT'
+  && readFileSync(join(installed, 'LICENSE'), 'utf8').includes('Copyright (c) 2026 Meta-Virgo'))
 check('the checks travel with it, so a reader can run them', shipped.some(file => file.startsWith('test/')))
-if (packed.size !== null) check('the tarball stays small', packed.size < 200 * 1024, `${packed.size} bytes`)
+if (packed.size !== null) check(`the tarball is below 200 KiB (${packed.size} bytes)`, packed.size < 200 * 1024)
 check('no working state leaked into the package',
   !shipped.some(file => file.includes('.dsh-config-sync') || file.includes('node_modules') || file.endsWith('settings.json')),
   shipped.join(', '))
 
 // ---- the packed copy actually runs -------------------------------------
-const root = `file:///${installed.replace(/\\/g, '/').replace(/\/$/, '')}`
+const root = pathToFileURL(installed).href
 const { apply } = await import(`${root}/index.js`)
 const { BASE_PATH } = await import(`${root}/lib/routes.js`)
 const home = tempDir('dpg-pack-profile-')
@@ -150,10 +155,9 @@ check('and announces the package name it was installed as',
 // ---- nothing about the author travels ----------------------------------
 // The checks themselves use invented ids, so those are excluded by name: a real
 // Gist id or a personal path appearing anywhere in the package is a leak.
-const FIXTURES = new Set(['a1b2c3d4e5f60718293a4b5c6d7e8f90'])
 const text = shipped.map(file => readFileSync(join(installed, file), 'utf8')).join('\n')
 const leaks = (text.match(/[A-Za-z]:\\\\?Users\\\\?[^"'\s]+|gho_[A-Za-z0-9]{20,}|\b[0-9a-f]{32}\b/g) ?? [])
-  .filter(value => !FIXTURES.has(value))
+  .filter(value => value !== TEST_GIST_ID)
 check('no personal path, token, or Gist id is baked into the package', leaks.length === 0, leaks.slice(0, 3).join(', '))
 
 process.exit(finish())

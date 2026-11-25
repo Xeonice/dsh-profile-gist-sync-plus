@@ -2,7 +2,7 @@
  * The backup document itself: what it carries, what it refuses, and what a
  * restore would do — all on a throwaway profile built by the harness.
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createReport, makeProfile, tempDir, useProfile, backupDocument } from './harness.mjs'
 
@@ -17,7 +17,7 @@ useProfile(profile, home)
 const document = backup.exportBackup()
 const paths = document.files.map(file => file.path)
 check('the document declares the shared format and revision',
-  document.format === backup.BACKUP_FORMAT && document.version === backup.BACKUP_VERSION,
+  document.format === 'dsh-profile-backup' && document.version === 0.2 && backup.BACKUP_FILENAME === 'dsh-profile-backup.json',
   `${document.format} v${document.version}`)
 check('the manifest travels as an object, other files as text lines',
   typeof document.files.find(file => file.path === 'package.json')?.json === 'object'
@@ -113,7 +113,8 @@ try {
   escaped = error
 }
 check('an export name cannot escape the folder', escaped?.code === 'unsafe-path', escaped?.message)
-check('the work directory is never part of a backup', !paths.some(path => path.startsWith(backup.WORK_DIR)))
+check('the fork has its own work directory, which is never exported',
+  backup.WORK_DIR === '.dsh-config-sync-plus' && !backup.exportBackup().files.some(file => file.path.startsWith(backup.WORK_DIR + '/')))
 check('a backup read from disk round-trips', backup.readBackupFile(exported).files.length === document.files.length)
 
 // ---- profile resolution, without any environment ------------------------
@@ -126,6 +127,14 @@ backup.rememberProfile(null)
 check('a lone profile is used when nothing identifies one',
   backup.profileRoot() === join(single, 'profiles', 'only-one') && backup.profileSource() === 'the only profile present',
   `${backup.profileRoot()} (${backup.profileSource()})`)
+const originalOnly = makeProfile(join(single, 'profiles', 'upstream-only'))
+mkdirSync(join(originalOnly, 'node_modules', 'dsh-profile-gist-sync'))
+let unresolved = null
+try { backup.profileRoot() } catch (error) { unresolved = error }
+check('an ambiguous profile is not selected just because upstream is installed', unresolved?.code === 'no-profile', unresolved?.message)
+const plusOnly = join(single, 'profiles', 'only-one')
+mkdirSync(join(plusOnly, 'node_modules', 'dsh-profile-gist-sync-plus'))
+check('the Plus installation resolves its own profile', backup.profileRoot() === plusOnly, backup.profileRoot())
 backup.rememberProfile({ name: 'reported', dir: profile })
 check('what the host reports wins over everything else',
   backup.profileRoot() === profile && backup.profileSource() === 'host', backup.profileSource())

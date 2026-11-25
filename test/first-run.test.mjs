@@ -7,9 +7,9 @@
  * assertion worth having, because the stub refuses every host but
  * api.github.com: any request anywhere else fails this check.
  */
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { createReport, makeProfile, tempDir, useProfile, callRoute, serveHandler, stubGithub, backupDocument, TEST_TOKEN } from './harness.mjs'
+import { createReport, makeProfile, tempDir, useProfile, callRoute, serveHandler, stubGithub, backupDocument, TEST_GIST_ID as NEW_ID, TEST_TOKEN } from './harness.mjs'
 
 const { check, finish } = createReport('first run')
 
@@ -18,8 +18,7 @@ const profile = makeProfile(join(home, 'profiles', 'test'))
 useProfile(profile, home)
 process.env.DSH_GITHUB_TOKEN = TEST_TOKEN
 
-const NEW_ID = 'a1b2c3d4e5f60718293a4b5c6d7e8f90'
-// The cloud copy this profile will find: the same shape this plugin writes.
+// The cloud copy this profile will find: the same v0.2 shape upstream writes.
 const stub = stubGithub({
   gistId: NEW_ID,
   document: backupDocument('test', [{ path: 'data/note.json', lines: ['{"hello":"from the cloud"}'] }]),
@@ -30,11 +29,24 @@ let handler = null
 registerRoutes({ get: (name) => (name === 'webServer' ? { register: (route) => { handler = route.handler; return () => {} } } : undefined) })
 const served = await serveHandler(handler)
 const call = (path, body) => callRoute(served.base, `${BASE_PATH}${path}`, body)
-const settingsFile = join(profile, '.dsh-config-sync', 'settings.json')
+const settingsFile = join(profile, '.dsh-config-sync-plus', 'settings.json')
+// A machine may already run upstream. Its state is neither imported implicitly
+// nor changed by the Plus fork, even when both point at the same profile.
+const upstreamState = join(profile, '.dsh-config-sync')
+mkdirSync(upstreamState)
+const upstreamSettings = '{"gistId":"upstream-fixture"}\n'
+writeFileSync(join(upstreamState, 'settings.json'), upstreamSettings)
 
-check('a fresh profile remembers nothing yet', !existsSync(settingsFile))
+check('a fresh Plus profile remembers nothing yet', !existsSync(settingsFile))
 const before = await call('/api/status')
 check('status reports no cloud copy', before.status === 200 && before.payload.cloud.gistId === null, JSON.stringify(before.payload.cloud))
+
+// A fresh installation can adopt the *document* from upstream by id without
+// importing its settings, uploading, or creating another Gist.
+const legacy = await call('/api/gist/read', { id: NEW_ID })
+check('Plus reads an existing upstream v0.2 Gist before the first upload',
+  legacy.status === 200 && legacy.payload.backup?.format === 'dsh-profile-backup' && legacy.payload.backup.version === 0.2
+  && !existsSync(settingsFile) && stub.calls.every(entry => entry.method === 'GET'))
 
 // ---- the first upload creates a secret Gist ----------------------------
 const upload = await call('/api/gist/upload', {})
@@ -50,7 +62,8 @@ check('the token travels in the header only',
   String(creation?.headers?.authorization ?? '').includes(TEST_TOKEN)
   && !JSON.stringify(creation?.body ?? {}).includes(TEST_TOKEN),
   String(creation?.headers?.authorization ?? '').slice(0, 12))
-check('the Gist description names this plugin', /dsh-profile-gist-sync/.test(creation?.body?.description ?? ''), creation?.body?.description)
+check('the Gist description and user agent identify the fork',
+  creation?.body?.description?.includes('dsh-profile-gist-sync-plus') === true && creation?.headers['user-agent'] === 'dsh-profile-gist-sync-plus')
 check('the created id is remembered in this profile',
   existsSync(settingsFile) && JSON.parse(readFileSync(settingsFile, 'utf8')).gistId === NEW_ID)
 
@@ -83,6 +96,8 @@ check('every call went to api.github.com', stub.calls.length > 0 && paths.every(
 check('no request carried a credential store', !JSON.stringify(stub.calls).includes('credentials'))
 check('no request carried local usage counters', !JSON.stringify(stub.calls).includes('usage.json'))
 check('the token is never written into the profile', !readFileSync(settingsFile, 'utf8').includes(TEST_TOKEN))
+check('upstream settings were neither uploaded nor changed', !JSON.stringify(stub.calls).includes('upstream-fixture')
+  && readFileSync(join(upstreamState, 'settings.json'), 'utf8') === upstreamSettings)
 
 stub.restore()
 served.close()

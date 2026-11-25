@@ -1,18 +1,21 @@
 {
   "meta": {
-    "title": "Config sync",
-    "description": "Upload this machine's configuration to the cloud in one click, sync it back, and see at a glance whether the two agree."
+    "title": "Config sync Plus",
+    "description": "Back up your DSH profile to a GitHub Gist. In Settings → Built-in plugins → Config sync Plus, preview file changes and missing plugins, then confirm to restore and install. Use a trusted Gist; undo restores configuration only, not packages."
   },
-  "tab": "Config sync",
-  "title": "Config sync",
-  "subtitle": "Send this machine's configuration to the cloud, or bring the cloud copy back here.",
+  "tab": "Config sync Plus",
+  "title": "Config sync Plus",
+  "subtitle": "Back up this profile or preview a restore from a trusted GitHub Gist.",
   "plugins": "Plugins",
-  "pluginsHint": "A backup never carries plugin packages. After a sync, what is still missing is listed here and can be installed in one action.",
+  "pluginsHint": "The backup does not contain plugin packages. Review the names and sources of missing plugins before allowing installation.",
   "pluginsInstall": "Install the missing plugins",
-  "newMachineTitle": "Using this on another computer the first time",
-  "newMachineStep1": "Install this plugin there, then restart DSH.",
-  "newMachineStep2": "Give it a token for the same GitHub account: a secret Gist is readable through the API only by its owner.",
-  "newMachineStep3": "Open this page and sync the cloud copy down.",
-  "newMachineStep4": "What is still missing then appears here; install it in one action, then restart DSH.",
-  "tokenHelp": "The three token sources and the gist scope are in the error message."
+  "setupTitle": "Set up this machine from a Gist",
+  "previewAction": "Preview restore",
+  "confirmAction": "Confirm restore and install plugins",
+  "newMachineTitle": "Using this on a new machine",
+  "newMachineStep1": "Install Config sync Plus in the target profile.",
+  "newMachineStep2": "Enter the trusted backup’s Gist ID or link and supply a GitHub token with Gist access.",
+  "newMachineStep3": "Choose “Preview restore” and review file changes, plugin sources and items that need manual setup.",
+  "newMachineStep4": "Confirm only if you trust the plan. Review the results, handle pending builds separately and restart DSH as indicated.",
+  "tokenHelp": "Use the token field, DSH_GITHUB_TOKEN / GITHUB_TOKEN on the host, or a signed-in gh CLI. Do not share tokens or Gist links."
 }

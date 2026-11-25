@@ -1,295 +1,88 @@
-# dsh-profile-gist-sync
+# 配置同步 Plus · Config sync Plus
 
-Back up this DSH profile's configuration to an **unlisted secret GitHub Gist**,
-pull it back on another machine, and see at a glance whether the two agree.
+`dsh-profile-gist-sync-plus` 是 [Meta-Virgo/dsh-profile-gist-sync](https://github.com/Meta-Virgo/dsh-profile-gist-sync) 的独立 fork。新机器可以直接读取原版 Gist：先看会改哪些配置、会从哪里安装哪些插件，再决定是否恢复。
 
-A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`)
-plugin: a page in **Settings → Plugins → 配置同步 / Config sync**, and a
-`config_backup` tool for the agent.
+An independent [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) plugin for backing up a profile to a GitHub Gist and setting up a second machine. **Preview the configuration changes and plugin sources first; restore and install only after confirmation.**
 
-页面位置：**设置 → 插件 → 配置同步**。Agent 侧工具：`config_backup`。
+[中文说明](#中文说明) · [English guide](#english-guide) · [HTTP & agent tool](#interfaces) · [MIT](LICENSE)
 
-## Install
+## 中文说明
+
+### 从 GitHub 固定提交安装（无需 npm 发布）
+
+1. 在 [Xeonice/dsh-profile-gist-sync-plus](https://github.com/Xeonice/dsh-profile-gist-sync-plus) 中选择并审阅**已推送**的提交，确认该提交的 [package.json](package.json) 包名是 `dsh-profile-gist-sync-plus`、版本是 `1.2.0`。复制完整的 **40 位提交 SHA**；下面的 `<commit-sha>` 是占位符，不是可安装的版本。不要以 `main`、浮动标签或上游提交代替。
+2. 打开目标 DSH 配置的 **插件 → 添加插件**，输入 `git+https://github.com/Xeonice/dsh-profile-gist-sync-plus.git#<commit-sha>`，替换占位符后再确认。若使用 DSH CLI，见下方等价示例；`web` 换成自己的配置名。CLI 安装前先退出占用该配置的 DSH；Desktop 配置需已由应用初始化。
+3. 启动或按提示重启 DSH，打开 **设置 → 内置插件 → 配置同步 Plus**。这个 fork 是独立插件，不会替换上游条目；安装本插件不需要执行 `npm install` 或构建脚本。
 
 ```sh
-dsh plugin --profile web add dsh-profile-gist-sync          # from npm
-dsh plugin --profile web add github:Meta-Virgo/dsh-profile-gist-sync   # from source
+# Replace <commit-sha> with the reviewed, published commit before running.
+dsh plugin --profile web add 'git+https://github.com/Xeonice/dsh-profile-gist-sync-plus.git#<commit-sha>'
 ```
 
-Then restart DSH. No dependencies, no build step, no install scripts: the
-package is plain ESM that Node runs as-is.
+### 迁移一台机器
 
-## The page
+| 在哪里 | 怎么做 | 会改变什么 |
+| --- | --- | --- |
+| 原机器 | 检查备份内容后上传到 Gist，记下链接；也可先导出 JSON 离线核对。 | 首次上传创建不公开列出的 Gist；若已指定或记住 ID，则更新其中的备份文件。 |
+| 新机器 | 在「新机恢复：配置和插件」填入可信 Gist 的 ID 或链接，点 **预览恢复**。 | 只读；列出哪些配置会新增、覆盖或保留，哪些插件已存在、可补装或需手动处理。不写配置、不安装。 |
+| 核对之后 | 确认来源和安装规格可信，再点 **确认恢复配置并安装插件**。 | 恢复刚预览的快照，并让 DSH 安装器处理计划中可解析的缺失插件；不会重新下载 Gist 来代替所见内容。 |
 
-Three numbered steps, one button each; nothing has to be typed.
+- **哪些配置会恢复？** Plus 主流程合并 bundle 选择，恢复 Cordis 配置、`data/`、`suppliers/`、`config/`、`presets/` 下的可迁移文件，以及其他位置的普通 JSON、YAML、TOML 等文本配置。预览会列出跳过项；本机包管理策略（如 `.npmrc`、`pnpm-workspace.yaml`、manifest 脚本及构建授权）、环境文件和未托管的脚本保留不动。
+- **哪些插件会补装？** 只将备份声明且来源可解析的缺失项交给 DSH 安装器。不把依赖声明当成“已安装”，不升级已有版本，也不会为仅有 bundle 名或本地路径的条目猜 npm 包。如果本机已有依赖声明但实际缺包，且 DSH 拒绝安装，结果会显示仍未补齐；Plus 不改包名，也不绕过安装器。请到 DSH 插件页核对该项。
+- **查看每项结果。** 个别失败不等于全部完成。待批准的构建脚本要在 DSH 插件管理中单独审阅；本插件不代为批准。要重试或计划已过期，请重新预览。没有可用的插件管理服务时可选高级的**仅同步配置**。恢复后的配置或软件包可能要重启 DSH 才生效；安装成功不等于运行中的插件已经切换。
+- **仅同步配置/从本地 JSON 导入是独立操作。** 它们沿用上游的配置合并方式：本地独有文件保留，同名配置可能被覆盖，manifest 中的依赖和 bundle 名合并（同名依赖采用备份规格）。不会自动补装插件；不要把 Plus 主流程对包管理设置的保护误认为适用于所有导入操作。
+- **撤销只恢复最近快照记录的配置文件，不卸载软件包。** 已下载的依赖和构建脚本的副作用不在撤销范围；若需删除软件包，在 DSH 的插件管理中处理。保留自己的离线备份。
 
-1. **状态** — one line saying whether the cloud copy and this machine agree,
-   plus the profile, the file count, and the last upload/sync. It checks the
-   cloud by itself on open; 重新检查 does it again.
-2. **上传** — 上传到云端 backs this machine up to the cloud. The Gist this
-   profile already uses is updated, and the first upload creates one and
-   remembers it. 另存为本地文件 writes the same backup to a local file instead.
-3. **同步** — 从云端同步 writes the cloud copy here, with 撤销上次同步 offered
-   afterwards. The same card then says which plugins the manifest names and this
-   machine does not have, and offers one button to install them.
+### 兼容性与保密
 
-Everything fiddly (the Gist id, a token, the machine-state checkbox, restoring
-from a backup file, the file list, the new-machine checklist) sits in a collapsed
-**高级设置** section. The Gist id and the last upload/sync are remembered in
-`<profile>/.dsh-config-sync/settings.json`; that file is never part of a backup.
+- 继续使用 `dsh-profile-backup.json`，格式为 `dsh-profile-backup` **v0.2**。已用上游插件备份？直接在新页面输入原 Gist 的链接，**不用重传**。Plus 的设置、导出和撤销快照只存在目标配置下的 `.dsh-config-sync-plus/`；不会自动接管上游的 Gist 绑定或撤销历史。如果特意让两个插件指向同一个 Gist，以后上传会更新同一个文件。
+- Gist 是 **secret（不公开列出），不是私密或加密存储**：持链接者可读。只恢复你信任的备份；其中可以包含可执行的供应商/插件配置和第三方软件来源。上传前检查实际导出的 JSON：凭据数据库（如 `data/auths/credentials.sqlite`）和二进制不会备份，但 `.npmrc`、环境文件、供应商设置或其他文本中手写的令牌、内网地址和本地路径**不是**自动脱敏的。凭据需要在新机单独配置。
+- 包本体、`node_modules`、`pnpm-lock.yaml` 和隐藏目录不随备份传输；`data/usage.json` 默认不含，可显式选择。`dependencies` 中的 `link:`、`file:`、`portal:`、`workspace:` 或绝对/相对路径在导出时剔除；备份不附带该目录的代码，也不会凭空补出版本号。其他文本文件中的路径不会自动改写。
+- 此插件调用 Gist API 需要有对应权限的 GitHub 令牌（经典令牌使用 `gist` scope；写入已有 Gist 要有其所有者的授权）。可用页面的令牌栏、宿主环境 `DSH_GITHUB_TOKEN` / `GITHUB_TOKEN`、或已登录的 `gh`。插件不把令牌写入备份或设置；不要把令牌贴进聊天、日志或 Gist。Gist 传输使用 `api.github.com`；**安装包**则由 DSH 的包管理器访问对应的注册表或 Git 源，已有构建授权仍可能使脚本执行。
 
-## Using this on a second machine
+## English guide
 
-1. Install the plugin there, then restart DSH.
-2. Give it a token **for the same GitHub account that owns the Gist**. A secret
-   Gist is readable through the API only by its owner, so another account does not
-   get "forbidden" — it gets "not found".
-3. Open the page and press 从云端同步.
-4. What is still missing then appears in ③; press 安装缺的插件 once, then restart
-   DSH.
+### Install from a pinned GitHub commit (no npm publication needed)
 
-Steps 2 and 4 are the two that fail on a new machine, so the page carries them:
-the checklist sits in 高级设置, and the token error spells out all three ways to
-supply one.
+Open the [fork on GitHub](https://github.com/Xeonice/dsh-profile-gist-sync-plus), review a **pushed** commit whose [manifest](package.json) identifies `dsh-profile-gist-sync-plus@1.2.0`, and copy its full **40-character SHA**. Replace `<commit-sha>` in `git+https://github.com/Xeonice/dsh-profile-gist-sync-plus.git#<commit-sha>` with that SHA. Do not install a moving branch, a placeholder, or the upstream baseline.
 
-## What leaves this machine
+Enter the spec in **Plugins → Add plugin** in the target profile, or use the `dsh plugin --profile web add` example above with your profile name. For CLI installation, stop DSH using that profile first; Desktop must already have initialized its profile. This bundle is plain ESM (Node ≥20), with no dependencies or install/build scripts. Start or restart DSH as indicated, then open **Settings → Built-in plugins → Config sync Plus**.
 
-Short version, for anyone deciding whether to install this:
+### Back up, preview, confirm
 
-- The only host ever contacted is `api.github.com`. The checks in `test/` fail if
-  the plugin opens any other connection.
-- Upload sends text configuration only — the files listed below. Credential
-  stores, binaries, `node_modules`, the lockfile, and this machine's usage
-  counters are excluded, and the UI names every exclusion instead of hiding it.
-- A dependency whose spec only resolves on this machine — `link:`, `file:`,
-  `portal:`, `workspace:`, or a bare path like `E:/x`, `/x`, or `./x` — is left
-  out of the uploaded `package.json` and reported, because it would overwrite the
-  other machine's own spec with a path that does not exist there. Nothing is
-  invented in its place: the other machine keeps whatever it already has.
-- The Gist is created `public: false`. **Unlisted, not private**: anyone with the
-  link can read it, so the link is the secret.
-- The GitHub token is never written anywhere; it is used for one request and can
-  come from the request body, the host environment, or a signed-in `gh` CLI.
-- The Gist id lives in `<profile>/.dsh-config-sync/settings.json` — inside a
-  hidden directory, which backups never carry, so syncing a machine never leaks
-  the id of the machine it came from.
-- Restoring is merge-style and reversible: nothing is written before the
-  overwritten bytes are snapshotted for 撤销上次同步.
-- Installing missing plugins is additive: it calls `installBundle` for each
-  missing spec and nothing else. It never removes, disables, or rewrites a bundle
-  selection, and running it twice is safe.
+1. **On the source machine**, review a local export and upload to a Gist. The first upload creates an unlisted Gist unless you specify an existing one. Subsequent uploads update the named or remembered Gist. Record its link securely.
+2. **On the destination**, paste the trusted Gist ID or link into **Set up this machine from a Gist** and select **Preview restore**. Review file changes, already-present plugins, the exact sources proposed for installation, and items requiring manual setup. Preview writes no profile files and installs nothing.
+3. **Confirm restore and install plugins** applies the previewed snapshot, not a fresh download. It merges bundle selections and restores Cordis configuration, portable files under `data/`, `suppliers/`, `config/` and `presets/`, and ordinary text configuration such as JSON, YAML and TOML elsewhere in the profile. The preview shows what will be skipped. Local package-manager policy (including `.npmrc`, `pnpm-workspace.yaml`, manifest scripts and build approvals), environment files and unmanaged scripts stay on this machine.
+4. **Read the per-package results.** Only resolvable missing packages declared in the backup go to DSH’s installer. Plus does not upgrade installed versions or guess sources from bundle names or machine-local paths. A local dependency declaration does not prove the package is present: if the files are missing and DSH refuses the install, Plus reports that the package is still missing. It does not rename the package or bypass the installer. Check that entry in Plugins. Review pending builds separately there; this plugin never approves them. Re-preview to retry failures or replace an expired plan. If the plugin manager is unavailable, use the separate **configuration-only** operation. Restart DSH as indicated to activate restored settings or packages; a successful install does not prove live activation.
 
-## What a backup carries
+The advanced configuration-only sync and local JSON import retain upstream merge semantics: local-only files stay, other backed-up files may be overwritten, and the manifest unions dependencies and bundles (the incoming spec wins on a duplicate). Neither installs packages automatically. These are **not** the combined flow’s package-manager-preserving restore. **Undo reverts configuration files only**, not installed packages, downloads or build-script effects. Remove unwanted packages separately in DSH. Keep an independent offline backup.
 
-Text configuration from the profile directory: `package.json`,
-`cordis.patch.yml`, `cordis.yml`, `.npmrc`, `pnpm-workspace.yaml`,
-`data/*.json`, `suppliers/*`, and any other text file the profile holds. The
-document format is `dsh-profile-backup` v0.2 — the same one the DSH plugin market
-reads and writes, so a backup from here imports there and vice versa.
+### What travels and whom to trust
 
-Never included, and always listed as excluded in the UI:
+- The Gist filename (`dsh-profile-backup.json`) and document (`dsh-profile-backup` v0.2) are unchanged. Paste an upstream Gist ID/link into Plus; no re-export is needed. Plus remembers its own ID in `<profile>/.dsh-config-sync-plus/settings.json` and keeps `exports/` and `undo/` alongside it. It neither reads nor migrates the upstream plugin’s local history. If you bind both plugins to the same Gist, uploads will update the same backup file.
+- **Secret means unlisted, not private or encrypted.** Anyone with the link can read the backup. Restore only trusted configuration and package sources: configuration can load code. Supply a token in the page, set `DSH_GITHUB_TOKEN` / `GITHUB_TOKEN` on the host, or sign in with `gh`. The plugin requires a token for Gist API calls; use one with Gist access (`gist` scope for a classic token) and owner authorization to update an existing Gist. The plugin does not store the token in settings or in the backup; avoid putting it in chat or logs.
+- Upload sends profile text, including files such as `cordis.patch.yml`, `.npmrc`, JSON data and supplier definitions. Known credential databases and binaries are excluded; **secrets, usernames or paths embedded in ordinary text are not redacted**. Inspect the exported JSON before sharing, and provision credentials separately on the destination. Installed packages, `node_modules`, `pnpm-lock.yaml` and hidden directories do not travel. Usage counters (`data/usage.json`) are opt-in.
+- Export omits machine-local `dependencies` specs (`link:`, `file:`, `portal:`, `workspace:`, absolute or relative paths) rather than inventing a version. This is not a blanket rewrite of arbitrary paths inside config files. Gist transfers use `api.github.com`; actual package installation can contact registries or Git hosts and run scripts already allowed by the destination profile.
 
-| Path | Why |
+## Interfaces
+
+The fork has its own package and Cordis row, `dsh-profile-gist-sync-plus`, and its own HTTP prefix, `/dsh-profile-gist-sync-plus`. Paths below are **relative to that prefix**.
+
+| Request | Purpose |
 | --- | --- |
-| `node_modules/`, `pnpm-lock.yaml` | reproducible from `package.json` |
-| `.git/`, `*.bak` | VCS state and repair leftovers |
-| hidden directories (`.dsh-market/`, `.plugin-manager/`, `.dsh-config-sync/`) | logs, caches, this plugin's own undo snapshots |
-| `data/auths/credentials.sqlite`, any other binary file | a credential store, and not portable |
-| `data/usage.json` | this machine's counters — include with the checkbox when wanted |
-| a machine-local `dependencies` entry | `link:`, `file:`, `portal:`, `workspace:`, or a bare path — means nothing elsewhere |
+| `POST /api/sync/preview` with `{ id?, token? }` | Read a Gist and preview configuration and plugin changes on this machine. Returns a one-use `planId` when the manager is available; otherwise no install can be confirmed. No restore or installation. |
+| `POST /api/sync/install` with `{ planId, confirm: true }` | After the user reviews the plan, restore that snapshot and attempt its eligible installations. Do not send a new Gist, dependency list, or build approval. |
+| `GET /api/status`, `GET /api/export`, `POST /api/gist/upload` | Inspect the current profile, download a backup, or upload one. Status reports the resolved profile directory and `profileSource`; check these before writing. |
+| `POST /api/settings`, `POST /api/gist/token` | Save the Gist ID or usage-counter preference (not the token), or report which token source answered. |
+| `POST /api/gist/read`, `POST /api/file/read` | Read a backup from a Gist or from a path inside the DSH home and return the configuration-only preview. |
+| `POST /api/sync`, `POST /api/preview`, `POST /api/restore` | Separate, configuration-only sync, preview, or restore; the explicit backup restore requires `confirm: true`. |
+| `GET /api/plugins`, `POST /api/plugins/install` | Separate inventory / installation for the current profile, not confirmation of a Gist snapshot. |
+| `POST /api/undo` | Revert the latest Plus configuration snapshot; never uninstall packages. |
 
-The machine-local dependency is the one exclusion that changes a file rather than
-dropping it whole: the entry is removed from the `package.json` in the document,
-every other key in that manifest is left byte-for-byte as it was (including
-`dsh.profile.bundles`, which keeps naming the plugin), and the caller is told the
-package name, the dropped spec, and — when the target's own `package.json` can be
-read — the name and version it would have installed. No `^1.0.0` or any other
-version is invented: the point of dropping it is that the target machine's own
-entry survives, not that a guess replaces it. This travels beside the document,
-not inside it, because the document format is shared with the DSH plugin market
-and gains no new keys.
+Agent tool: **`config_backup_plus`**. Actions: `status`, `export`, `gist_upload`, `gist_read`, `restore`, `undo`. `gist_read` and `restore` preview by default; `apply: true` writes **configuration only**. Local exports stay in the fork’s exports directory. A tool restore from a file accepts paths inside the DSH home. There is **no tool action to install a plan, confirm on the user’s behalf, or grant build-script approvals**.
 
-A backup written elsewhere may still carry entries this plugin does not write
-into a profile: the plugin market's exporter, for example, includes
-`data/auths/credentials.sqlite`. Importing such a document is not refused — the
-credential store, cached binaries, backup copies, oversized files, and hidden
-directories are skipped, the rest of the configuration is restored, and the plan
-lists exactly what was ignored and why. Only a path that escapes the profile, a
-dependency directory, a duplicate path, a malformed entry, or a document with no
-usable `package.json` is a hard refusal.
+## Checks and credits
 
-## Restore
+Run `node test/run.mjs` from a source checkout. The tests use temporary profiles, a stub GitHub API and a stub plugin manager; they do not need a live Gist or an installation into a user profile. The packaging check verifies that the tarball contains the runtime, locales, icons, tests, README and licence, without historical screenshots or machine state.
 
-Merge-style and reversible:
-
-- Files in the backup are written; files only the local machine has stay.
-- `package.json` is **merged**: dependencies and `dsh.profile.bundles` are
-  unioned, so plugins already installed on the target machine are kept. Where both
-  sides declare the same dependency the incoming spec wins — which is exactly why
-  a machine-local spec is dropped at export time rather than left to overwrite the
-  target's own.
-- Every overwritten or created path is copied into
-  `<profile>/.dsh-config-sync/undo/<stamp>/` first, so the import can be undone
-  from the page or with the tool's `undo` action.
-- Installed plugins are not part of a backup, so a restore leaves a manifest that
-  names packages this machine may not have. ③ lists them after the sync and
-  installs them one spec at a time; the same thing is available as
-  `GET /api/plugins` and `POST /api/plugins/install`. When the deployment
-  publishes no `pluginManager` service, the page says it cannot check rather than
-  showing an empty list.
-
-## GitHub Gist
-
-Upload updates the Gist this profile remembers, or creates a secret one and
-remembers it the first time; leave the id empty in 高级设置 and save to start a
-different Gist, or paste an id/link to adopt one. Download reads
-`dsh-profile-backup.json` from it and validates the document before anything is
-written.
-
-The token is never stored: paste one per session, or set `DSH_GITHUB_TOKEN` /
-`GITHUB_TOKEN` on the host, or sign in with the `gh` CLI — the page offers a
-"check token" button that reports which source answered. When none of the three
-answers, the error names all three in that order and links to a token-creation
-page with the `gist` scope pre-ticked, instead of the library's own
-`Bad credentials`. A secret Gist is unlisted, **not private**: anyone with the
-link can read it, and through the API only its owner can read it at all.
-
-## Agent tool
-
-`config_backup` with `action`: `status`, `export`, `gist_upload`, `gist_read`,
-`restore`, `undo`. Gist actions use the remembered cloud copy when `gistId` is
-omitted, so "back this up" and "sync my configuration" work without an id.
-`export` writes inside `<profile>/.dsh-config-sync/exports/`, and `restore`
-reads only from inside the DSH home directory, so the tool cannot be used as a
-file-system escape. `gist_upload` reports which dependencies were left out and
-`status` says the same before anything is uploaded, so an agent can explain the
-omission without reading the document.
-
-## Checks
-
-```sh
-node test/run.mjs
-```
-
-Five check files, each a separate process, all offline: profiles are temporary
-directories, the GitHub HTTP layer is stubbed (and refuses every host but
-`api.github.com`), and the only server any check talks to is its own loopback
-port. They cover the document format and its exclusions, the machine-local
-dependency drop and its report, the restore plan and undo, the union guarantee,
-the missing-plugin computation and the install route against a stubbed plugin
-manager (including the service-absent and service-throwing cases), the activation
-contract, the route and tool surface, the first-run journey against the stubbed
-GitHub, the token error's actionable text — and that the package still activates
-after being packed with only the manifest's `files` list.
-
-## Which profile this plugin works on
-
-A DSH process does **not** necessarily carry `DSH_PROFILE_DIR`. DSH Desktop
-starts its host as
-`DeepSeek Harness.exe --expose-internals …/dsh-desktop-host/lib/index.js <checkout> <profile dir> …`
-with no profile variables at all — the `DSH_*` values a shell tool sees are
-injected per call, not inherited by the host. So the profile is resolved from,
-in order, and every source is checked against the filesystem before it is used:
-
-1. what the running host reports (`profileContext`) — the launcher owns the
-   location, so this wins when present;
-2. `DSH_PROFILE_DIR`, then `DSH_HOME` + `DSH_PROFILE` (a CLI-started DSH takes
-   these as instructions, and a missing directory is reported as such);
-3. the `<profile dir>` argument the desktop host is started with;
-4. the profile that has this plugin installed — the one running it;
-5. the only profile present.
-
-If none of them answers, the page says so instead of backing up the wrong
-directory. `/api/status` carries the source that answered as `profileSource`
-(and the `config_backup` tool prints it in its `status` summary); the page shows
-the profile it settled on at the bottom of 高级设置.
-
-## If the plugin does not load
-
-设置 → 插件 → 插件列表 shows one row per loaded entry, with its `fiberPhase` and,
-when it fails, a one-line diagnostic. When this plugin fails, none of its routes
-exist: the page then answers `操作失败。HTTP 404` and names the missing host half
-itself.
-
-Two failures seen while building this, both worth avoiding:
-
-- **`Invalid effect`** — a `ctx.effect(...)` callback returned something other
-  than a disposer, and Cordis rejects the *whole row* for it (so the routes and
-  the `config_backup` tool both disappear). Work that owns no resource belongs in
-  a plain call inside `apply`, not in an effect.
-- **`no-profile`** — the host was started without `DSH_PROFILE_DIR` and the
-  fallback chain could not name a profile. See above.
-
-Toggling that entry off and on re-imports the module from disk, so a source fix
-applies **without restarting DSH**. A restart is only needed when the row's own
-name changed, because the bundle then has to be resolved again at boot.
-
-## Route surface
-
-One `prefix` route on the bare web server:
-
-```
-GET  /dsh-profile-gist-sync/api/status
-GET  /dsh-profile-gist-sync/api/export[?include=machine]
-POST /dsh-profile-gist-sync/api/settings  { gistId?, includeMachine? }
-POST /dsh-profile-gist-sync/api/sync      { id?, token? }
-POST /dsh-profile-gist-sync/api/preview   { backup }
-POST /dsh-profile-gist-sync/api/restore   { backup, confirm: true }
-POST /dsh-profile-gist-sync/api/undo      {}
-POST /dsh-profile-gist-sync/api/file/read { path }
-POST /dsh-profile-gist-sync/api/gist/token  { token? }
-POST /dsh-profile-gist-sync/api/gist/upload { id?, token?, includeMachine? }
-POST /dsh-profile-gist-sync/api/gist/read   { id?, token? }
-GET  /dsh-profile-gist-sync/api/plugins
-POST /dsh-profile-gist-sync/api/plugins/install {}
-```
-
-`/api/sync` is `/api/gist/read` plus `/api/restore` in one step, restricted to a
-Gist target — that restriction is what keeps it from being a general write
-endpoint: the document still has to be a valid `dsh-profile-backup`.
-
-`/api/plugins` answers what the profile declares and this machine lacks:
-
-```jsonc
-// the manager answered
-{ "available": true, "reason": null, "checkedAt": "…",
-  "sources": { "plugins": true, "bundles": true },
-  "installed": ["@deepseek-ai/dsh-base"],
-  "missing": [{ "name": "some-plugin", "spec": "^1.0.0", "kind": "dependency",
-                "installSpec": "some-plugin@^1.0.0", "resolvable": true,
-                "note": null, "version": null }],
-  "counts": { "declared": 2, "installed": 1, "missing": 1, "installable": 1, "unresolved": 0 } }
-
-// no usable manager: no `missing` array at all, so a reader that ignores
-// `available` breaks instead of reporting a clean bill of health
-{ "available": false, "reason": "no-plugin-manager", "checkedAt": "…", "declared": 2 }
-```
-
-`reason` is `no-plugin-manager` or `plugin-manager-error`. `/api/plugins/install`
-takes no body, installs the resolvable entries one at a time, and answers the same
-inventory plus what happened to each spec:
-
-```jsonc
-{ …the /api/plugins fields…,
-  "results": [{ "name": "some-plugin", "spec": "^1.0.0", "installSpec": "some-plugin@^1.0.0",
-                "outcome": "installed", "application": "restart-required", "version": "1.0.0",
-                "message": null, "pendingBuilds": [] }],
-  "outcomeCounts": { "installed": 1, "already-present": 0, "failed": 0, "skipped": 0 },
-  "restart": true }
-```
-
-`outcome` is `installed`, `already-present`, `failed`, or `skipped`; the last is a
-`link:`/`workspace:` spec this machine cannot install, whose `message` carries the
-`note` (`local-path` / `workspace-protocol`). A `failed` row carries the manager's
-own diagnostic. Both routes answer `200` when the service is absent — the degraded
-answer is a fact, not an error — and `/api/gist/upload` additionally returns
-`dropped` and `droppedEntries` describing the dependencies left out of the upload.
-
-Every request must pass the host's own gate (`connection.requestRejection`)
-when the host publishes one, and its Host must be loopback or an authority the
-deployment declared.
-
-## Licence
-
-MIT. `icon.svg` is the plugin's own mark; `assets/icon-256.png` is the raster
-form the plugin market asks for, generated by `assets/make-icon.py`.
+Upstream code and artwork: **Meta-Virgo**, [dsh-profile-gist-sync](https://github.com/Meta-Virgo/dsh-profile-gist-sync), [MIT licence](LICENSE). The [SVG icon](icon.svg) and [raster icon](assets/icon-256.png) are retained from upstream; the [raster generator](https://github.com/Meta-Virgo/dsh-profile-gist-sync/blob/71e696d/assets/make-icon.py) is also preserved in the source checkout. The historical screenshot in the repository depicts upstream, not this fork; no running screenshot is advertised or packed.

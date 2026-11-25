@@ -111,6 +111,9 @@ export function backupDocument(profile = 'test', extraFiles = []) {
   }
 }
 
+/** The sole Gist id used in fixtures (not a user or repository secret). */
+export const TEST_GIST_ID = 'a1b2c3d4e5f60718293a4b5c6d7e8f90'
+
 /**
  * Replace the GitHub HTTP layer with a recording stub.
  *
@@ -119,7 +122,7 @@ export function backupDocument(profile = 'test', extraFiles = []) {
  * throws) — so a green run is also the plugin's privacy contract: nothing but
  * api.github.com was reached. Returns the call log and a restore function.
  */
-export function stubGithub({ gistId = 'a1b2c3d4e5f60718293a4b5c6d7e8f90', document = null } = {}) {
+export function stubGithub({ gistId = TEST_GIST_ID, document = null } = {}) {
   const calls = []
   const real = globalThis.fetch
   const reply = (status, payload) => new Response(JSON.stringify(payload), {

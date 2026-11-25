@@ -1,10 +1,9 @@
 /**
- * Host half of dsh-profile-gist-sync.
+ * Host half of dsh-profile-gist-sync-plus.
  *
- * Two callers, one implementation: the settings page posts to the HTTP routes
- * registered here, and the agent calls the `config_backup` tool. Both call the
- * functions in ./lib/backup.js and ./lib/gist.js, so a plan, a restore, and an
- * upload mean the same thing on either path.
+ * The settings page and the `config_backup_plus` agent tool share the backup
+ * format and Gist transport. The combined restore-and-install flow belongs to
+ * the settings page; the agent tool never installs packages.
  *
  * `webServer` is a hard dependency — without it there is no settings page to
  * serve. `tools` and `connection` are read optionally, so the plugin still
@@ -48,6 +47,6 @@ export function apply(ctx) {
   // resource, and an effect callback must return a disposer — Cordis fails the
   // whole activation with "Invalid effect" when one returns anything else.
   reportProfile(ctx)
-  ctx.effect(() => registerRoutes(ctx), 'dsh-profile-gist-sync: HTTP routes')
-  ctx.effect(() => registerTool(ctx), 'dsh-profile-gist-sync: config_backup tool')
+  ctx.effect(() => registerRoutes(ctx), 'dsh-profile-gist-sync-plus: HTTP routes')
+  ctx.effect(() => registerTool(ctx), 'dsh-profile-gist-sync-plus: config_backup_plus tool')
 }
