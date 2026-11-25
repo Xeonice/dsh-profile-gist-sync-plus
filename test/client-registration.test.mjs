@@ -72,10 +72,11 @@ assert.deepEqual(icon.owners, ['settings.section.icon'], 'the icon belongs to th
 check('the nav icon decorates the same Plus section, not another page',
   icon.options.id === section.options.id && typeof icon.component === 'function', icon.options.id)
 const label = () => typeof section.options.label === 'function' ? section.options.label() : section.options.label
-for (const [lang, title] of [['zh', '配置同步 Plus'], ['en', 'Config sync Plus']]) {
+for (const [lang, title] of [['zh', '多端配置同步'], ['en', 'Multi-device config sync']]) {
   language = lang // Ask the same live registration for its label again; do not re-apply the plugin.
   const actual = label()
-  check(`the ${lang} section label follows the active locale`, actual === title, actual)
+  const { meta } = JSON.parse(readFileSync(new URL(`locale/${lang}.json`, root), 'utf8'))
+  check(`the ${lang} sidebar and plugin manager show the same localized name`, actual === title && actual === meta.title, actual)
 }
 check('registration and label lookup make no API request', requests.length === 0, requests.join(', '))
 check('registration requests no non-React modules', [...imports].every(name => name === 'react'), [...imports].join(', '))

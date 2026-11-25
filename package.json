@@ -1,8 +1,8 @@
 {
   "name": "dsh-profile-gist-sync-plus",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "type": "module",
-  "description": "Back up a DSH profile to a GitHub Gist. Preview configuration changes and missing plugins before restoring on another machine. · 把 DSH 配置备份到 Gist；在另一台机器先预览配置变更和缺失插件，再确认恢复。",
+  "description": "Multi-device config sync: back up a DSH profile to a GitHub Gist and preview file changes and missing plugins before restoring on another machine. · 多端配置同步：把 DSH 配置备份到 Gist，在另一台机器先预览配置变更和缺失插件，再确认恢复。",
   "icon": "icon.svg",
   "main": "./index.js",
   "exports": {

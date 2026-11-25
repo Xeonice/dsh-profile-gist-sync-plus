@@ -85,15 +85,16 @@ check('the client half is shipped', shipped.includes('client.js'))
 check('the bundle patch is shipped', shipped.includes('cordis.patch.yml'))
 const packedManifest = JSON.parse(readFileSync(join(installed, 'package.json'), 'utf8'))
 check('the packed manifest names the independent fork and version',
-  packedManifest.name === 'dsh-profile-gist-sync-plus' && packedManifest.version === '1.4.0'
+  packedManifest.name === 'dsh-profile-gist-sync-plus' && packedManifest.version === '1.4.1'
   && packedManifest.repository.url === 'git+https://github.com/Xeonice/dsh-profile-gist-sync-plus.git')
 const patch = readFileSync(join(installed, 'cordis.patch.yml'), 'utf8')
 check('the bundle inserts the fork under its own row and module name',
   /^\s*- id: dsh-profile-gist-sync-plus$/m.test(patch) && /^\s*name: dsh-profile-gist-sync-plus$/m.test(patch))
-check('both shipped locales distinguish the fork from upstream',
-  [['zh', '配置同步 Plus'], ['en', 'Config sync Plus']].every(([lang, title]) => {
-    const { meta } = JSON.parse(readFileSync(join(installed, 'locale', `${lang}.json`), 'utf8'))
-    return meta.title === title && meta.description.includes('Gist')
+check('both packaged plugin titles and help text use the localized display name',
+  [['zh', '多端配置同步'], ['en', 'Multi-device config sync']].every(([lang, title]) => {
+    const copy = JSON.parse(readFileSync(join(installed, 'locale', `${lang}.json`), 'utf8'))
+    return [copy.meta.title, copy.title, copy.tab].every(value => value === title)
+      && copy.meta.description.includes('Gist') && copy.meta.description.includes(title) && copy.newMachineStep1.includes(title)
   }))
 check('both icon forms and the README are shipped', ['icon.svg', 'assets/icon-256.png', 'README.md'].every(file => shipped.includes(file)))
 check('the tarball does not advertise or include upstream screenshots', !shipped.some(file => /screenshot/i.test(file)))

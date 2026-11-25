@@ -1,10 +1,10 @@
 {
   "meta": {
-    "title": "Config sync Plus",
-    "description": "Back up your DSH profile to a GitHub Gist. Open Config sync Plus in the Settings sidebar to preview file changes and missing plugins before confirming a restore. Use a trusted Gist; undo restores configuration only, not packages."
+    "title": "Multi-device config sync",
+    "description": "Back up your DSH profile to a GitHub Gist. Open Multi-device config sync in the Settings sidebar to preview file changes and missing plugins before confirming a restore. Use a trusted Gist; undo restores configuration only, not packages."
   },
-  "tab": "Config sync Plus",
-  "title": "Config sync Plus",
+  "tab": "Multi-device config sync",
+  "title": "Multi-device config sync",
   "subtitle": "Move your configuration and plugins between computers.",
   "backup": "Back up this machine",
   "restore": "Restore from backup",
@@ -16,7 +16,7 @@
   "previewAction": "View preview",
   "confirmAction": "Confirm configuration restore",
   "newMachineTitle": "Using this on a new machine",
-  "newMachineStep1": "Install Config sync Plus in the target profile.",
+  "newMachineStep1": "Install Multi-device config sync in the target profile.",
   "newMachineStep2": "Choose Restore from backup and use the linked backup or paste a trusted link from another machine.",
   "newMachineStep3": "Review file changes, plugin sources and items that need manual setup. Address GitHub access only if prompted.",
   "newMachineStep4": "Confirm only if you trust the plan. Review the results, handle pending builds separately and restart DSH as indicated.",

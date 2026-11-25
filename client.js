@@ -1,4 +1,4 @@
-/** Settings → Config sync Plus. Plans and credentials live only for the current interaction. */
+/** Settings → Multi-device config sync. Plans and credentials live only for the current interaction. */
 window.__ModuleLoader__.load({
   id: 'dsh-profile-gist-sync-plus',
   factory(require) {
@@ -11,7 +11,7 @@ window.__ModuleLoader__.load({
 
     const DICT = {
       zh: {
-        section: '配置同步 Plus',
+        section: '多端配置同步',
         localProfile: '本机配置',
         profileName: '配置名称',
         backupContents: '备份内容',
@@ -213,7 +213,7 @@ window.__ModuleLoader__.load({
         'err.other': '操作未能完成。',
       },
       en: {
-        section: 'Config sync Plus',
+        section: 'Multi-device config sync',
         localProfile: 'Local configuration',
         profileName: 'Profile',
         backupContents: 'Backup contents',

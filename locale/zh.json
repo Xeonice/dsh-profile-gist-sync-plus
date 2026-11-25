@@ -1,10 +1,10 @@
 {
   "meta": {
-    "title": "配置同步 Plus",
-    "description": "将 DSH 配置备份到 GitHub Gist。在设置左侧打开「配置同步 Plus」，先预览文件变更和缺失插件，确认后再恢复并安装。只使用可信 Gist；撤销只恢复配置，不卸载软件包。"
+    "title": "多端配置同步",
+    "description": "将 DSH 配置备份到 GitHub Gist。在设置左侧打开「多端配置同步」，先预览文件变更和缺失插件，确认后再恢复并安装。只使用可信 Gist；撤销只恢复配置，不卸载软件包。"
   },
-  "tab": "配置同步 Plus",
-  "title": "配置同步 Plus",
+  "tab": "多端配置同步",
+  "title": "多端配置同步",
   "subtitle": "在不同电脑之间迁移配置和插件。",
   "backup": "备份本机",
   "restore": "从备份恢复",
@@ -16,7 +16,7 @@
   "previewAction": "查看预览",
   "confirmAction": "确认恢复配置",
   "newMachineTitle": "在新机器上使用",
-  "newMachineStep1": "在目标配置中安装「配置同步 Plus」。",
+  "newMachineStep1": "在目标配置中安装「多端配置同步」。",
   "newMachineStep2": "点「从备份恢复」，使用已关联的备份，或粘贴另一台电脑生成的链接。",
   "newMachineStep3": "查看预览，核对文件变更、插件来源和需手动处理的项目。若 GitHub 拒绝访问，再按提示配置凭据。",
   "newMachineStep4": "信任该计划才确认。查看结果，单独处理待审批的构建脚本，并按提示重启 DSH。",
