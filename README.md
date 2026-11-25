@@ -10,9 +10,9 @@ An independent [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harnes
 
 ### 从 GitHub 固定提交安装（无需 npm 发布）
 
-1. 在 [Xeonice/dsh-profile-gist-sync-plus](https://github.com/Xeonice/dsh-profile-gist-sync-plus) 中选择并审阅**已推送**的提交，确认该提交的 [package.json](package.json) 包名是 `dsh-profile-gist-sync-plus`、版本是 `1.3.0`。复制完整的 **40 位提交 SHA**；下面的 `<commit-sha>` 是占位符，不是可安装的版本。不要以 `main`、浮动标签或上游提交代替。
+1. 在 [Xeonice/dsh-profile-gist-sync-plus](https://github.com/Xeonice/dsh-profile-gist-sync-plus) 中选择并审阅**已推送**的提交，确认该提交的 [package.json](package.json) 包名是 `dsh-profile-gist-sync-plus`、版本是 `1.4.0`。复制完整的 **40 位提交 SHA**；下面的 `<commit-sha>` 是占位符，不是可安装的版本。不要以 `main`、浮动标签或上游提交代替。
 2. 打开目标 DSH 配置的 **插件 → 添加插件**，输入 `git+https://github.com/Xeonice/dsh-profile-gist-sync-plus.git#<commit-sha>`，替换占位符后再确认。若使用 DSH CLI，见下方等价示例；`web` 换成自己的配置名。CLI 安装前先退出占用该配置的 DSH；Desktop 配置需已由应用初始化。
-3. 启动或按提示重启 DSH，打开 **设置 → 内置插件 → 配置同步 Plus**。这个 fork 是独立插件，不会替换上游条目；安装本插件不需要执行 `npm install` 或构建脚本。
+3. 启动或按提示重启 DSH。打开**设置**，直接点左侧的 **配置同步 Plus**。从 1.4 起，Plus 有自己的设置入口，不必进「内置插件」；上游原版的入口保持不变。安装本插件不需要执行 `npm install` 或构建脚本。
 
 ```sh
 # Replace <commit-sha> with the reviewed, published commit before running.
@@ -23,11 +23,11 @@ dsh plugin --profile web add 'git+https://github.com/Xeonice/dsh-profile-gist-sy
 
 | 在哪里 | 怎么做 | 会改变什么 |
 | --- | --- | --- |
-| 原机器 | 先在「更多 → 本地备份文件」导出 JSON 检查，再点 **备份本机**。看到「备份已就绪」后点 **复制备份链接**。 | 未绑定时创建不公开列出的 Gist；已有上传目标时会先显示将被更新的目标。 |
+| 原机器 | 先在「更多 → 本地备份文件」导出 JSON 检查，再点 **备份本机**。看到「备份已就绪」后点 **复制链接**。 | 未绑定时创建不公开列出的 Gist；已有上传目标时会先显示将被更新的目标。 |
 | 新机器 | 点 **从备份恢复**。没有关联目标就粘贴上一台的链接并查看预览；已关联时可直接查看或换来源。 | 预览列出具体文件的新增、覆盖、合并，以及会补装的插件和来源。取消不会写配置、安装插件或改变上传目标。 |
 | 核对之后 | 有可补装项时，点 **恢复并安装 N 个插件**；仅有配置变化时，点 **确认恢复配置**。 | 使用刚看过的快照，不重新下载；没有改动就不写入。恢复来源不会替换本机的上传目标。 |
 
-页面打开时只读取本机状态。没有 GitHub 访问问题时不显示令牌输入框；本地文件、上传目标管理、单独补装和诊断都收在「更多」里。
+打开页面只读取本机状态，不访问 GitHub。首页不展示完整备份地址；需要分享时点「复制链接」，需要核对完整目标时进「更多 → 管理备份目标」或查看更新确认页。令牌输入框只在遇到访问问题时出现。
 
 - **哪些配置会恢复？** Plus 主流程合并 bundle 选择，恢复 Cordis 配置、`data/`、`suppliers/`、`config/`、`presets/` 下的可迁移文件，以及其他位置的普通 JSON、YAML、TOML 等文本配置。预览会列出跳过项；本机包管理策略（如 `.npmrc`、`pnpm-workspace.yaml`、manifest 脚本及构建授权）、环境文件和未托管的脚本保留不动。
 - **哪些插件会补装？** 只将备份声明且来源可解析的缺失项交给 DSH 安装器。不把依赖声明当成“已安装”，不升级已有版本，也不会为仅有 bundle 名或本地路径的条目猜 npm 包。如果本机已有依赖声明但实际缺包，且 DSH 拒绝安装，结果会显示仍未补齐；Plus 不改包名，也不绕过安装器。请到 DSH 插件页核对该项。
@@ -46,13 +46,13 @@ dsh plugin --profile web add 'git+https://github.com/Xeonice/dsh-profile-gist-sy
 
 ### Install from a pinned GitHub commit (no npm publication needed)
 
-Open the [fork on GitHub](https://github.com/Xeonice/dsh-profile-gist-sync-plus), review a **pushed** commit whose [manifest](package.json) identifies `dsh-profile-gist-sync-plus@1.3.0`, and copy its full **40-character SHA**. Replace `<commit-sha>` in `git+https://github.com/Xeonice/dsh-profile-gist-sync-plus.git#<commit-sha>` with that SHA. Do not install a moving branch, a placeholder, or the upstream baseline.
+Open the [fork on GitHub](https://github.com/Xeonice/dsh-profile-gist-sync-plus), review a **pushed** commit whose [manifest](package.json) identifies `dsh-profile-gist-sync-plus@1.4.0`, and copy its full **40-character SHA**. Replace `<commit-sha>` in `git+https://github.com/Xeonice/dsh-profile-gist-sync-plus.git#<commit-sha>` with that SHA. Do not install a moving branch, a placeholder, or the upstream baseline.
 
-Enter the spec in **Plugins → Add plugin** in the target profile, or use the `dsh plugin --profile web add` example above with your profile name. For CLI installation, stop DSH using that profile first; Desktop must already have initialized its profile. This bundle is plain ESM (Node ≥20), with no dependencies or install/build scripts. Start or restart DSH as indicated, then open **Settings → Built-in plugins → Config sync Plus**.
+Enter the spec in **Plugins → Add plugin** in the target profile, or use the `dsh plugin --profile web add` example above with your profile name. For CLI installation, stop DSH using that profile first; Desktop must already have initialized its profile. This bundle is plain ESM (Node ≥20), with no dependencies or install/build scripts. Start or restart DSH as indicated, then select **Config sync Plus** directly in the **Settings** sidebar. Since 1.4, Plus no longer adds a tab inside Built-in plugins; the original plugin’s entry is unchanged.
 
 ### Back up, preview, confirm
 
-1. **On the source machine**, inspect a JSON export under **More → Local backup files**, then choose **Back up this machine**. An unlinked machine creates an unlisted Gist; an existing destination is shown before updating. Copy the backup link from the inline receipt.
+1. **On the source machine**, inspect a JSON export under **More → Local backup files**, then choose **Back up this machine**. An unlinked machine creates an unlisted Gist; an existing destination is shown before updating. Choose **Copy link** on the inline receipt. The home page keeps the full destination out of view; use **More → Manage backup destination** or the update confirmation to inspect it.
 2. **On the destination**, choose **Restore from backup**. Paste a trusted Gist link or ID if one has not been linked. With a linked destination, go straight to the preview or choose another source. Review file changes, already-present plugins, exact installation sources and items requiring manual setup. Previewing or cancelling neither writes profile files nor installs packages.
 3. **Restore and install N plugins** applies the previewed snapshot, not a fresh download. If only files change, the action confirms configuration only; if nothing changes there is no write. Restoring from a source does not change your upload destination. It merges bundle selections and restores Cordis configuration, portable files under `data/`, `suppliers/`, `config/` and `presets/`, and ordinary text configuration such as JSON, YAML and TOML elsewhere in the profile. The preview shows what will be skipped. Local package-manager policy (including `.npmrc`, `pnpm-workspace.yaml`, manifest scripts and build approvals), environment files and unmanaged scripts stay on this machine.
 4. **Read the per-package results.** Only resolvable missing packages declared in the backup go to DSH’s installer. Plus does not upgrade installed versions or guess sources from bundle names or machine-local paths. A local dependency declaration does not prove the package is present: if the files are missing and DSH refuses the install, Plus reports that the package is still missing. It does not rename the package or bypass the installer. Check that entry in Plugins. Review pending builds separately there; this plugin never approves them. Re-preview to retry failures or replace an expired plan. If the plugin manager is unavailable, use the separate **configuration-only** operation. Restart DSH as indicated to activate restored settings or packages; a successful install does not prove live activation.

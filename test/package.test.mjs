@@ -9,7 +9,7 @@
  *
  * Without npm or pnpm, stage the same files in a temporary directory.
  */
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { cpSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -85,7 +85,7 @@ check('the client half is shipped', shipped.includes('client.js'))
 check('the bundle patch is shipped', shipped.includes('cordis.patch.yml'))
 const packedManifest = JSON.parse(readFileSync(join(installed, 'package.json'), 'utf8'))
 check('the packed manifest names the independent fork and version',
-  packedManifest.name === 'dsh-profile-gist-sync-plus' && packedManifest.version === '1.3.0'
+  packedManifest.name === 'dsh-profile-gist-sync-plus' && packedManifest.version === '1.4.0'
   && packedManifest.repository.url === 'git+https://github.com/Xeonice/dsh-profile-gist-sync-plus.git')
 const patch = readFileSync(join(installed, 'cordis.patch.yml'), 'utf8')
 check('the bundle inserts the fork under its own row and module name',
@@ -141,17 +141,10 @@ check('the packed copy answers its own status route',
   `${status.status}, profile ${status.payload.profile}, version ${status.payload.version}`)
 served.close()
 
-const clientSource = readFileSync(join(installed, 'client.js'), 'utf8')
-let clientThrew = null
-try {
-  // eslint-disable-next-line no-new-func
-  new Function('window', 'document', clientSource)
-} catch (error) {
-  clientThrew = error
-}
-check('the packed client half parses', clientThrew === null, clientThrew?.message)
-check('and announces the package name it was installed as',
-  clientSource.includes(`id: '${manifest.name}'`), manifest.name)
+// Resolve and execute ./client from the unpacked package, not the working tree.
+const packedClient = spawnSync(process.execPath, ['test/client-registration.test.mjs'], { cwd: installed, encoding: 'utf8' })
+check('the packed client registers its own localized Settings section with no API calls',
+  packedClient.status === 0, `${packedClient.stdout ?? ''}${packedClient.stderr || packedClient.error || ''}`)
 
 // ---- nothing about the author travels ----------------------------------
 // The checks themselves use invented ids, so those are excluded by name: a real

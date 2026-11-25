@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "配置同步 Plus",
-    "description": "将 DSH 配置备份到 GitHub Gist。在「设置 → 内置插件 → 配置同步 Plus」先预览文件变更和缺失插件，确认后再恢复并安装。只使用可信 Gist；撤销只恢复配置，不卸载软件包。"
+    "description": "将 DSH 配置备份到 GitHub Gist。在设置左侧打开「配置同步 Plus」，先预览文件变更和缺失插件，确认后再恢复并安装。只使用可信 Gist；撤销只恢复配置，不卸载软件包。"
   },
   "tab": "配置同步 Plus",
   "title": "配置同步 Plus",

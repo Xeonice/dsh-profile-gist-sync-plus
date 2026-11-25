@@ -36,7 +36,10 @@ check('other sites, insecure links and credential-bearing URLs are not backup so
   [`http://gist.github.com/${id}`, `https://example.invalid/${id}`, `https://user@gist.github.com/${id}`, `${canonical}?extra=private`, `${canonical}#revision`].every(s => f.sourceId(s) == null))
 check('copy uses the confirmed Gist even if the upstream HTML URL is unrelated', f.gistLink({ id, htmlUrl: 'https://example.invalid/unrelated' }) === canonical)
 check('a receipt without a real ID provides no copy target', f.gistLink({ htmlUrl: canonical }) == null)
-check('old Host cannot run the new UI operations even when cloud state exists', !f.compatible({ version: '1.2.0', cloud: {} }) && f.compatible({ version: '1.3.0', cloud: {} }))
+check('the UI still supports the 1.3.0 Host protocol as well as the 1.4.0 release',
+  ['1.3.0', '1.4.0'].every(version => f.compatible({ version, cloud: {} })))
+check('a pre-1.3 Host or a status without cloud capabilities remains unsupported',
+  !f.compatible({ version: '1.2.99', cloud: {} }) && !f.compatible({ version: '1.4.0' }))
 check('a count that hides a file change is rejected before confirmation', !f.filePlan({ ...fixture(true), counts: fixture().counts }))
 check('a Gist reply must match the explicitly selected source', f.validCloudPlan(plan, 'standard', id) && !f.validCloudPlan(plan, 'standard', 'different-id'))
 check('a config-only preview cannot stand in for a combined preview or vice versa', !f.validCloudPlan(plan, 'config', id) && !f.validCloudPlan({ ...plan, plugins: undefined }, 'standard', id) && f.validCloudPlan({ ...plan, plugins: undefined }, 'config', id))
@@ -48,5 +51,5 @@ check('unavailable inventory does not turn file changes into an implicit config-
 check('a pinned Git source is not labelled as an npm registry package', f.sourceKind(missing, k => k) === 'npm' && f.sourceKind({ ...missing, installSpec: 'git+https://github.com/example/plugins.git#rev' }, k => k) === 'Git')
 const result = { ...inventory, results: [{ name: missing.name, outcome: 'installed', pendingBuilds: [] }], outcomeCounts: { installed: 1, 'already-present': 0, failed: 0, skipped: 0 } }
 check('complete results are distinguished from missing data and pending builds', f.verifiedReport(result) && !f.incomplete(result) && f.incomplete({}) && f.incomplete({ ...result, results: [{ ...result.results[0], pendingBuilds: ['build-fixture'] }] }))
-check('no prototype actions or external UI libraries were packaged', !/example\.invalid|示例备份|重新体验|dsh-client-ui-primitives/.test(source))
+check('no prototype copy or dummy destinations were packaged', !/example\.invalid|示例备份|重新体验/.test(source))
 process.exit(finish())

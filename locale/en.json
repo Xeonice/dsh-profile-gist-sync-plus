@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Config sync Plus",
-    "description": "Back up your DSH profile to a GitHub Gist. In Settings → Built-in plugins → Config sync Plus, preview file changes and missing plugins, then confirm to restore and install. Use a trusted Gist; undo restores configuration only, not packages."
+    "description": "Back up your DSH profile to a GitHub Gist. Open Config sync Plus in the Settings sidebar to preview file changes and missing plugins before confirming a restore. Use a trusted Gist; undo restores configuration only, not packages."
   },
   "tab": "Config sync Plus",
   "title": "Config sync Plus",

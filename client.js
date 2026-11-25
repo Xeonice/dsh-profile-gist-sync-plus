@@ -1,4 +1,4 @@
-/** Settings → Built-in plugins. Plans and credentials live only for the current interaction. */
+/** Settings → Config sync Plus. Plans and credentials live only for the current interaction. */
 window.__ModuleLoader__.load({
   id: 'dsh-profile-gist-sync-plus',
   factory(require) {
@@ -6,13 +6,19 @@ window.__ModuleLoader__.load({
     const h = React.createElement
     const NS = 'dsh-profile-gist-sync-plus'
     const API = '/dsh-profile-gist-sync-plus/api'
-    const TAB_ORDER = 71
+    const SECTION_ORDER = 16
+    const GUIDE = 'https://github.com/Xeonice/dsh-profile-gist-sync-plus#readme'
 
     const DICT = {
       zh: {
-        tab: '配置同步 Plus',
-        title: '配置同步 Plus',
-        intro: '在不同电脑之间迁移配置和插件。',
+        section: '配置同步 Plus',
+        localProfile: '本机配置',
+        profileName: '配置名称',
+        backupContents: '备份内容',
+        contents: '配置文件和插件清单',
+        unavailable: '状态不可用',
+        help: '帮助',
+        openGuide: '在新标签页打开使用指南',
         backup: '备份本机',
         restore: '从备份恢复',
         more: '更多',
@@ -22,9 +28,13 @@ window.__ModuleLoader__.load({
         previewAgain: '重新预览',
         previewReceiptSource: '重新预览此来源',
         noneYet: '尚未备份',
+        unlinked: '未关联备份目标',
         linked: '已关联备份目标',
+        linkedGist: '已关联的 Gist',
+        gistSource: 'Gist 备份',
         ready: '备份已就绪',
         copy: '复制备份链接',
+        copyLink: '复制链接',
         copied: '已复制',
         manualCopy: '未能自动复制，请手动复制下方链接。',
         link: '备份链接',
@@ -203,9 +213,14 @@ window.__ModuleLoader__.load({
         'err.other': '操作未能完成。',
       },
       en: {
-        tab: 'Config sync Plus',
-        title: 'Config sync Plus',
-        intro: 'Move settings and plugins between computers.',
+        section: 'Config sync Plus',
+        localProfile: 'Local configuration',
+        profileName: 'Profile',
+        backupContents: 'Backup contents',
+        contents: 'Configuration files and plugin manifest',
+        unavailable: 'Status unavailable',
+        help: 'Help',
+        openGuide: 'Open the guide in a new tab',
         backup: 'Back up this machine',
         restore: 'Restore from backup',
         more: 'More',
@@ -215,9 +230,13 @@ window.__ModuleLoader__.load({
         previewAgain: 'Preview again',
         previewReceiptSource: 'Preview this source again',
         noneYet: 'No backup yet',
+        unlinked: 'No backup destination linked',
         linked: 'Backup destination linked',
+        linkedGist: 'Linked Gist',
+        gistSource: 'Gist backup',
         ready: 'Backup ready',
         copy: 'Copy backup link',
+        copyLink: 'Copy link',
         copied: 'Copied',
         manualCopy: 'Automatic copy was unavailable. Select and copy the link below.',
         link: 'Backup link',
@@ -397,81 +416,113 @@ window.__ModuleLoader__.load({
       },
     }
 
+    // Geometry and materials follow the installed Account settings cards. The
+    // colored Button pair stays blue with on-color text in both host palettes.
     const CSS = `
-.dpgsp-root { --ink:var(--dsw-alias-label-primary); --muted:var(--dsw-alias-label-secondary); --paper:var(--dsw-alias-bg-layer-1); --soft:var(--dsw-alias-bg-layer-2); --line:var(--dsw-alias-border-l1); --edge:var(--dsw-alias-border-l2); --brand:var(--dsw-alias-brand-primary); --good:var(--dsw-alias-state-success-primary); --warn:var(--dsw-alias-state-warn-primary); --error:var(--dsw-alias-state-error-primary); container-type:inline-size; max-width:820px; min-width:0; color:var(--ink); font:inherit; font-size:14px; line-height:1.55; overflow-wrap:anywhere; }
-.dpgsp-root *, .dpgsp-root *::before { box-sizing:border-box; }
-.dpgsp-panel { background:var(--paper); border:1px solid var(--line); border-radius:16px; }
-.dpgsp-body { padding:clamp(18px,4cqi,34px); }
-.dpgsp-root :is(h2,h3,h4,p,ul,dl,dd) { margin:0; }
-.dpgsp-root h2 { font-size:clamp(20px,3.4cqi,27px); letter-spacing:-.025em; line-height:1.24; font-weight:650; }
-.dpgsp-root h3 { font-size:16px; line-height:1.4; font-weight:620; }
-.dpgsp-root h4 { font-size:14px; line-height:1.4; font-weight:600; }
-.dpgsp-root .dpgsp-intro { margin-top:5px; color:var(--muted); font-size:14px; }
-.dpgsp-header, .dpgsp-titleline, .dpgsp-actions, .dpgsp-status, .dpgsp-ready, .dpgsp-source, .dpgsp-foot, .dpgsp-row, .dpgsp-line, .dpgsp-check { display:flex; align-items:center; }
-.dpgsp-header { gap:13px; align-items:flex-start; }
-.dpgsp-titleline { align-items:center; gap:14px; flex:1; min-width:0; }
-.dpgsp-mark { display:grid; place-items:center; flex:none; width:47px; height:47px; border:1px solid var(--line); border-radius:13px; background:var(--soft); background:color-mix(in srgb,var(--brand) 9%,var(--paper)); color:var(--brand); }
+.dpgsp-root {
+  --ink:var(--dsw-alias-label-primary); --muted:var(--dsw-alias-label-secondary); --subtle:var(--dsw-alias-label-tertiary,var(--muted));
+  --paper:var(--dsw-alias-settings-card-fill,var(--dsw-alias-bg-layer-2)); --stroke:var(--dsw-alias-settings-card-stroke,var(--dsw-alias-border-l2));
+  --line:var(--dsw-alias-border-l2); --edge:var(--dsw-alias-border-l3,var(--line)); --hover:var(--dsw-alias-interactive-bg-hover,var(--dsw-alias-bg-layer-1));
+  --accent:var(--dsw-alias-state-business-primary,var(--dsw-alias-brand-primary)); --good:var(--dsw-alias-state-success-primary); --warn:var(--dsw-alias-state-warn-primary); --error:var(--dsw-alias-state-error-primary);
+  container-type:inline-size; display:flex; flex-direction:column; gap:16px; width:100%; min-width:0; padding:8px 0;
+  color:var(--ink); font:inherit; font-size:13px; line-height:22px; overflow-wrap:anywhere;
+}
+.dpgsp-root, .dpgsp-root *, .dpgsp-root *::before, .dpgsp-root *::after { box-sizing:border-box; }
+.dpgsp-root :is(h2,h3,p,ul,dl,dd) { margin:0; }
+.dpgsp-root :is(h2,h3) { font-size:14px; line-height:22px; font-weight:500; }
+.dpgsp-root strong { font-weight:500; }
+.dpgsp-card { width:100%; min-width:0; padding:12px 16px; border:.5px solid var(--stroke); border-radius:var(--dsw-radius-xl,16px); background:var(--paper); }
+.dpgsp-summary, .dpgsp-identity, .dpgsp-status, .dpgsp-line, .dpgsp-source, .dpgsp-actions, .dpgsp-foot, .dpgsp-note, .dpgsp-row, .dpgsp-check { display:flex; align-items:center; }
+.dpgsp-summary { min-height:44px; justify-content:space-between; flex-wrap:wrap; gap:6px 16px; }
+.dpgsp-identity { min-width:0; gap:10px; }
+.dpgsp-mark { display:grid; place-items:center; flex:none; width:32px; height:32px; border-radius:50%; corner-shape:round; color:var(--muted); background:var(--dsw-alias-bg-skeleton,var(--hover)); }
 .dpgsp-icon { display:inline-block; flex:none; vertical-align:middle; }
-.dpgsp-stack, .dpgsp-group, .dpgsp-iteminfo { display:grid; gap:10px; min-width:0; }
-.dpgsp-stack { gap:18px; }
-.dpgsp-group { gap:8px; }
-.dpgsp-section { padding-top:22px; margin-top:23px; border-top:1px solid var(--line); }
-.dpgsp-actions { flex-wrap:wrap; gap:9px; }
-.dpgsp-btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; max-width:100%; min-height:39px; padding:8px 15px; border:1px solid var(--edge); border-radius:8px; background:var(--paper); color:var(--ink); cursor:pointer; touch-action:manipulation; font:inherit; font-size:13px; font-weight:550; text-align:center; line-height:1.42; text-decoration:none; }
-.dpgsp-btn:hover:not(:disabled) { background:var(--soft); border-color:var(--muted); }
-.dpgsp-btn.dpgsp-primary { color:var(--paper); background:var(--ink); border-color:var(--ink); }
-.dpgsp-btn.dpgsp-primary:hover:not(:disabled) { background:color-mix(in srgb,var(--ink) 88%,var(--paper)); border-color:var(--ink); }
-.dpgsp-btn.dpgsp-quiet { background:transparent; border-color:transparent; color:var(--muted); padding:5px 7px; min-height:30px; font-weight:500; }
-.dpgsp-btn.dpgsp-quiet:hover:not(:disabled) { color:var(--ink); background:var(--soft); border-color:transparent; }
+.dpgsp-identity > div, .dpgsp-status { min-width:0; }
+.dpgsp-status { justify-content:flex-end; flex-wrap:wrap; gap:4px 8px; color:var(--muted); }
+.dpgsp-status [data-focus=backup-receipt] { color:var(--ink); }
+.dpgsp-status [data-focus=backup-receipt] svg { color:var(--good); }
+.dpgsp-subtitle { color:var(--subtle); }
+.dpgsp-hint, .dpgsp-meta, .dpgsp-note, .dpgsp-intro { color:var(--muted); }
+.dpgsp-note { align-items:flex-start; gap:8px; }
+.dpgsp-note > svg { margin-top:3px; }
+.dpgsp-actions, .dpgsp-foot { justify-content:flex-end; flex-wrap:wrap; gap:8px 10px; }
+.dpgsp-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; max-width:100%; min-width:min(58px,100%); min-height:36px; padding:6px 14px; border:.5px solid var(--edge); border-radius:var(--dsw-radius-md,12px); background:transparent; color:var(--ink); cursor:pointer; touch-action:manipulation; font:inherit; font-size:14px; line-height:22px; text-align:center; text-decoration:none; white-space:normal; overflow-wrap:anywhere; }
+.dpgsp-btn.dpgsp-primary { --button-fill:var(--dsw-alias-button-info-fill,var(--dsw-alias-button-primary-fill,var(--accent))); --button-l:.56; border-color:transparent; font-weight:500; color:var(--dsw-alias-label-on-color,var(--dsw-alias-label-primary-foreground)); background:var(--button-fill); }
+/* Cap only lightness, retaining the host's hue. The native blue alone is too
+   light for 14px white text, especially on the dark palette. */
+@supports (color:oklch(from currentColor min(l,.56) c h)) {
+  .dpgsp-btn.dpgsp-primary { background:oklch(from var(--button-fill) min(l,var(--button-l)) c h); }
+}
+.dpgsp-btn.dpgsp-quiet { min-width:0; min-height:32px; padding:4px 6px; border:0; color:var(--muted); font-size:13px; }
+@media (hover:hover) {
+  .dpgsp-btn:not(.dpgsp-primary):not(:disabled):hover { background:var(--hover); }
+  .dpgsp-btn.dpgsp-primary:not(:disabled):hover { --button-fill:var(--dsw-alias-button-info-hover,var(--dsw-alias-button-primary-hover,var(--accent))); --button-l:.53; }
+  .dpgsp-btn.dpgsp-quiet:hover, .dpgsp-help:hover { color:var(--ink); }
+}
 .dpgsp-root :is(button,input):disabled { opacity:.55; cursor:not-allowed; }
-.dpgsp-root :is(button,input,summary,a):focus-visible { outline:2px solid var(--brand); outline-offset:3px; }
-.dpgsp-root :is(h2,h3)[tabindex]:focus { outline:none; }
-.dpgsp-menuwrap { position:relative; flex:none; }
-.dpgsp-menulist { position:absolute; z-index:2; top:calc(100% + 4px); inset-inline-end:0; width:min(260px,75cqi); display:grid; background:var(--dsw-alias-bg-overlay,var(--paper)); border:1px solid var(--edge); border-radius:10px; padding:5px; box-shadow:0 5px 18px var(--line); }
-.dpgsp-menulist .dpgsp-btn { justify-content:flex-start; text-align:start; color:var(--ink); padding:8px 10px; }
-.dpgsp-status { width:fit-content; max-width:100%; gap:8px; background:var(--soft); color:var(--muted); border:1px solid var(--line); border-radius:99px; padding:4px 11px; font-size:12px; font-weight:550; }
-.dpgsp-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--dsw-alias-state-idle-primary); }
-.dpgsp-ready, .dpgsp-box { border:1px solid var(--line); border-radius:9px; padding:12px 14px; }
-.dpgsp-ready { flex-wrap:wrap; justify-content:space-between; gap:8px 12px; background:var(--soft); background:color-mix(in srgb,var(--good) 8%,var(--paper)); border-color:color-mix(in srgb,var(--good) 30%,var(--line)); }
-.dpgsp-ready .dpgsp-icon, .dpgsp-success > .dpgsp-line > .dpgsp-icon { color:var(--good); }
-.dpgsp-ready h3 { color:var(--good); }
-.dpgsp-ready .dpgsp-btn { min-height:30px; padding:4px 10px; font-size:12px; }
-.dpgsp-box { display:grid; gap:7px; background:var(--soft); }
-.dpgsp-warning { border-inline-start:3px solid var(--warn); }
-.dpgsp-alert { border-inline-start:3px solid var(--error); }
-.dpgsp-success { border-inline-start:3px solid var(--good); }
-.dpgsp-line, .dpgsp-check { gap:8px; flex-wrap:wrap; }
-.dpgsp-hint, .dpgsp-note, .dpgsp-source, .dpgsp-meta { color:var(--muted); font-size:12.5px; }
-.dpgsp-note { display:flex; align-items:flex-start; gap:7px; }
-.dpgsp-note > svg { margin-top:.16em; }
-.dpgsp-source { gap:6px 9px; flex-wrap:wrap; }
-.dpgsp-source strong { color:var(--ink); font-weight:550; }
-.dpgsp-list { padding:0; list-style:none; border:1px solid var(--line); border-radius:9px; }
-.dpgsp-row { gap:10px; padding:9px 12px; min-width:0; }
-.dpgsp-row + .dpgsp-row { border-top:1px solid var(--line); }
-.dpgsp-row > .dpgsp-icon { color:var(--muted); }
-.dpgsp-row .dpgsp-iteminfo { flex:1; gap:2px; }
-.dpgsp-root code { font: .94em/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; overflow-wrap:anywhere; white-space:pre-wrap; unicode-bidi:isolate; }
-.dpgsp-tag { flex:none; font-size:11.5px; color:var(--muted); background:var(--soft); border-radius:5px; padding:2px 7px; }
-.dpgsp-details > summary { width:fit-content; max-width:100%; cursor:pointer; color:var(--muted); font-size:13px; padding:3px 0; }
-.dpgsp-details > :not(summary) { margin-top:8px; }
-.dpgsp-foot { background:var(--soft); border-top:1px solid var(--line); border-radius:0 0 16px 16px; padding:14px clamp(18px,4cqi,34px); flex-wrap:wrap; justify-content:flex-end; gap:12px 18px; }
-.dpgsp-foot > .dpgsp-note { flex:1 1 190px; }
-.dpgsp-foot .dpgsp-actions { justify-content:flex-end; }
-.dpgsp-field { display:grid; gap:6px; min-width:0; }
-.dpgsp-field label { font-weight:550; font-size:13px; }
-.dpgsp-input { width:100%; max-width:100%; min-width:0; border:1px solid var(--edge); border-radius:8px; padding:9px 11px; color:var(--ink); background:var(--dsw-alias-bg-base); font:inherit; font-size:14px; }
+.dpgsp-root :is(button,input,summary,a):focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.dpgsp-root :is(h2,h3,span)[tabindex]:focus { outline:none; }
+.dpgsp-body { display:flex; flex-direction:column; min-width:0; }
+.dpgsp-body > * { min-width:0; padding-block:12px; }
+.dpgsp-body > :first-child { padding-top:4px; }
+.dpgsp-body > :last-child { padding-bottom:4px; }
+.dpgsp-body > * + *, .dpgsp-foot, .dpgsp-homefoot, .dpgsp-copy-feedback { border-top:.5px solid var(--line); }
+.dpgsp-foot, .dpgsp-homefoot { margin-top:8px; padding-top:12px; }
+.dpgsp-foot > .dpgsp-note { flex:1 1 230px; }
+.dpgsp-foot > .dpgsp-actions { min-width:0; margin-inline-start:auto; }
+.dpgsp-homefoot { display:grid; align-items:center; grid-template-columns:auto auto minmax(0,1fr); gap:8px 10px; }
+.dpgsp-homefoot .dpgsp-actions { grid-area:1/3; }
+.dpgsp-menuwrap { display:contents; }
+.dpgsp-menuwrap > button { grid-area:1/1; }
+.dpgsp-menuwrap > button[aria-expanded=true] svg { transform:rotate(180deg); }
+/* Disclosure in normal flow: the host's scrolling settings column can reach
+   every option, including items below a short viewport. No portal or overlay. */
+.dpgsp-menulist { grid-column:1 / -1; grid-row:2; display:grid; padding-top:6px; border-top:.5px solid var(--line); }
+.dpgsp-menulist .dpgsp-btn { width:100%; min-height:40px; justify-content:flex-start; gap:10px; padding:6px; color:var(--ink); text-align:start; }
+.dpgsp-help { grid-area:1/2; display:inline-flex; align-items:center; gap:3px; width:fit-content; min-height:32px; color:var(--muted); text-decoration:none; }
+.dpgsp-stack, .dpgsp-group, .dpgsp-field, .dpgsp-box, .dpgsp-iteminfo { display:grid; gap:6px; min-width:0; }
+.dpgsp-stack { gap:12px; }
+.dpgsp-field label { font-weight:500; }
+.dpgsp-input { width:100%; min-width:0; min-height:36px; border:.5px solid var(--edge); border-radius:var(--dsw-radius-sm,8px); padding:6px 10px; color:var(--ink); background:var(--dsw-alias-bg-layer-1); font:inherit; font-size:14px; }
+.dpgsp-input::placeholder { color:var(--subtle); }
 .dpgsp-input[aria-invalid=true] { border-color:var(--error); }
-.dpgsp-check { flex-wrap:nowrap; align-items:baseline; cursor:pointer; }
-.dpgsp-check input { accent-color:var(--brand); }
-.dpgsp-facts { display:grid; gap:5px; }
-.dpgsp-facts > div { display:grid; grid-template-columns:minmax(75px, .45fr) 1fr; gap:10px; align-items:baseline; }
-.dpgsp-facts dt { color:var(--muted); font-size:12.5px; }
-.dpgsp-facts dd { min-width:0; }
-.dpgsp-root .dpgsp-link { color:var(--brand); text-underline-offset:2px; }
+.dpgsp-check { gap:10px; cursor:pointer; }
+.dpgsp-check input { flex:none; accent-color:var(--accent); }
+.dpgsp-line, .dpgsp-source { gap:6px 8px; flex-wrap:wrap; }
+.dpgsp-source { justify-content:space-between; }
+.dpgsp-line > *, .dpgsp-source > * { min-width:0; }
+.dpgsp-box.dpgsp-alert > :first-child, .dpgsp-box.dpgsp-warning > :first-child, .dpgsp-box.dpgsp-success > :first-child { display:flex; align-items:baseline; gap:8px; }
+.dpgsp-box.dpgsp-alert > :first-child::before, .dpgsp-box.dpgsp-warning > :first-child::before, .dpgsp-box.dpgsp-success > :first-child::before { content:''; width:3px; height:1em; flex:none; align-self:center; border-radius:2px; background:var(--warn); }
+.dpgsp-box.dpgsp-alert > :first-child::before { background:var(--error); }
+.dpgsp-box.dpgsp-success > :first-child::before { background:var(--good); }
+.dpgsp-list { list-style:none; padding:0; }
+.dpgsp-row { min-height:40px; min-width:0; padding:6px 0; gap:10px; }
+.dpgsp-row + .dpgsp-row, .dpgsp-facts > div + div { border-top:.5px solid var(--line); }
+.dpgsp-row > .dpgsp-icon, .dpgsp-rowvalue { color:var(--muted); }
+.dpgsp-row .dpgsp-iteminfo { flex:1; gap:0; }
+.dpgsp-rowvalue { min-width:0; text-align:end; }
+.dpgsp-root code { font: .96em/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre-wrap; overflow-wrap:anywhere; unicode-bidi:isolate; }
+.dpgsp-details > summary { min-height:32px; padding:4px 0; color:var(--ink); cursor:pointer; }
+.dpgsp-details[open] > :not(summary) { margin-top:6px; }
+.dpgsp-body > .dpgsp-facts { padding-block:0; }
+.dpgsp-facts > div { display:flex; align-items:baseline; justify-content:space-between; gap:8px 16px; min-height:40px; padding:9px 0; }
+.dpgsp-facts dt { color:var(--muted); }
+.dpgsp-facts dd { min-width:0; text-align:end; }
+.dpgsp-root .dpgsp-link { color:var(--dsw-alias-link,var(--accent)); text-underline-offset:2px; }
+.dpgsp-copy-feedback { margin-top:8px; padding-top:8px; }
 .dpgsp-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
-@container (max-width:500px) { .dpgsp-body { padding:19px 15px; } .dpgsp-titleline { gap:10px; } .dpgsp-mark { width:39px; height:39px; border-radius:10px; } .dpgsp-header { gap:4px; } .dpgsp-section { padding-top:16px; margin-top:19px; } .dpgsp-foot { padding:12px 15px; } .dpgsp-foot > .dpgsp-note { flex-basis:100%; } .dpgsp-row { padding:8px 9px; } }
-@container (max-width:330px) { .dpgsp-homeactions > .dpgsp-btn { width:100%; } .dpgsp-facts > div { grid-template-columns:1fr; gap:0; } .dpgsp-foot .dpgsp-actions { width:100%; } }
+@container (max-width:470px) {
+  .dpgsp-homefoot { grid-template-columns:auto minmax(0,1fr); }
+  .dpgsp-homefoot .dpgsp-actions { grid-area:3 / 1 / auto / -1; }
+  .dpgsp-foot > .dpgsp-note { flex-basis:100%; }
+}
+@container (max-width:340px) {
+  .dpgsp-status { justify-content:flex-start; }
+  .dpgsp-facts > div { flex-direction:column; gap:0; }
+  .dpgsp-facts dd { text-align:start; }
+  .dpgsp-actions { width:100%; }
+  .dpgsp-actions > .dpgsp-btn { flex:1 1 100%; }
+}
 `
 
     const PATHS = {
@@ -483,7 +534,7 @@ window.__ModuleLoader__.load({
       pc: 'M3 4h18v13H3zM8 21h8m-4-4v4', shield: 'm12 3 8 3v5c0 5-4 8-8 10-4-2-8-5-8-10V6zm0 5v5m0 3v.1',
       info: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM12 10.5v6m0-9v.2',
       check: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM7.8 12.2l2.6 2.8 5.9-6.2',
-      copy: 'M8 8h12v13H8zM16 8V3H4v13h4',
+      copy: 'M8 8h12v13H8zM16 8V3H4v13h4', external: 'M7 17 17 7M7 7h10v10',
     }
     const icon = (key, size = 17) => h('svg', { className: 'dpgsp-icon', width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.65, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true, focusable: false }, h('path', { d: PATHS[key] }))
     const txt = value => typeof value === 'string' && value.trim() !== ''
@@ -607,11 +658,14 @@ window.__ModuleLoader__.load({
     const isolated = value => h('bdi', null, value)
     const mono = value => h('code', { dir: 'ltr' }, value)
     const heading = (text, ...children) => h('section', { className: 'dpgsp-group' }, h('h3', null, text), ...children)
-    const badge = text => h('span', { className: 'dpgsp-tag' }, text)
+    const rowValue = text => h('span', { className: 'dpgsp-rowvalue' }, text)
+    const frame = (content, foot, label) => h('section', { className: 'dpgsp-card', 'aria-label': label }, h('div', { className: 'dpgsp-body' }, content), foot)
+    const footer = (buttons, guidance) => h('footer', { className: 'dpgsp-foot' }, guidance ? note(guidance, 'shield') : null,
+      buttons.some(Boolean) ? h('div', { className: 'dpgsp-actions' }, ...buttons) : null)
     function list(items, makeRow) {
       return h('ul', { className: 'dpgsp-list' }, items.map((item, i) => h('li', { key: i, className: 'dpgsp-row' }, ...makeRow(item))))
     }
-    const fileList = (files, t) => list(files, file => [icon('file'), h('div', { className: 'dpgsp-iteminfo' }, mono(file.path)), badge(t(file.status))])
+    const fileList = (files, t) => list(files, file => [icon('file'), h('div', { className: 'dpgsp-iteminfo' }, mono(file.path)), rowValue(t(file.status))])
     function FileChanges({ p, t }) {
       const changed = p.files.filter(f => f.status !== 'identical')
       const same = p.files.filter(f => f.status === 'identical')
@@ -651,10 +705,9 @@ window.__ModuleLoader__.load({
       const blocked = skippedCount(p) > 0 || missing.some(row => !row.resolvable)
       const work = actionable(plan)
       return h(React.Fragment, null,
-        h('div', { className: 'dpgsp-source' }, icon(plan.mode === 'local' ? 'file' : 'pc'), t('source'),
-          h('strong', null, isolated([p.sourceProfile, plan.mode === 'local' ? plan.fileName : plan.ref.id].filter(txt).join(' · '))),
-          txt(p.createdAt) ? h('span', null, formatTime(p.createdAt)) : null, changeSource),
-        hint(`${t('targetProfile')}: ${p.profile}`),
+        facts([[t('source'), h('div', { className: 'dpgsp-source' },
+          h('div', null, isolated([p.sourceProfile, plan.mode === 'local' ? plan.fileName : plan.ref.id].filter(txt).join(' · ')),
+            txt(p.createdAt) ? hint(formatTime(p.createdAt)) : null), changeSource)], [t('targetProfile'), isolated(p.profile)]]),
         standard ? null : box(null, h('p', null, t('configScope'))),
         !work && !unknown ? box(blocked ? 'warning' : null,
           blocked ? h('p', null, t('noApplicable')) : h(React.Fragment, null, h('strong', null, t('noChanges')), hint(t(standard ? 'filesPluginsSame' : 'filesSame')))) : null,
@@ -679,10 +732,12 @@ window.__ModuleLoader__.load({
     }
     function RestoreReceipt({ receipt, t, undoButton, onRepreview, locked }) {
       if (!receipt) return null
-      if (receipt.mode === 'unknown') return box('warning', h('h3', { tabIndex: -1, 'data-focus': 'restore-receipt' }, t('restoreUnverified')),
-        hint(`${t('source')}: ${receipt.source}`), h('p', null, t('uncertain')), undoButton)
-      if (receipt.mode === 'undo') return box('success', h('h3', { tabIndex: -1, 'data-focus': 'restore-receipt' }, t('undoDone')),
-        h('p', null, countText(t, 'reverted', receipt.reverted), ' ', t('undoLimit')))
+      const resultTitle = (key, glyph) => h('h3', { tabIndex: -1, 'data-focus': 'restore-receipt', className: 'dpgsp-line' }, icon(glyph), t(key))
+      if (receipt.mode === 'unknown') return frame(h(React.Fragment, null, resultTitle('restoreUnverified', 'info'),
+        facts([[t('source'), receipt.local ? isolated(receipt.source) : t('gistSource')]]), note(t('uncertain')),
+        !receipt.local ? details(t('resultDetails'), facts([[t('source'), mono(receipt.source)]])) : null), undoButton ? footer([undoButton]) : null)
+      if (receipt.mode === 'undo') return frame(h(React.Fragment, null, resultTitle('undoDone', 'check'),
+        h('p', null, countText(t, 'reverted', receipt.reverted), ' ', t('undoLimit'))))
       const { result: r, mode } = receipt
       const attention = !!r.warnings?.length || (mode === 'standard' && (r.complete !== true || incomplete(r.plugins)))
       const scripts = pendingBuilds(r.plugins)
@@ -691,21 +746,22 @@ window.__ModuleLoader__.load({
       const results = Array.isArray(r.plugins?.results) ? r.plugins.results : []
       const failed = results.filter(item => item?.outcome === 'failed').length
       const skipped = results.filter(item => item?.outcome === 'skipped').length
-      return h('section', { className: `dpgsp-box dpgsp-${attention ? 'warning' : 'success'}`, 'aria-label': t(attention ? 'restoreAttention' : 'restoreDone') },
-        h('h3', { tabIndex: -1, 'data-focus': 'restore-receipt', className: 'dpgsp-line' }, icon(attention ? 'info' : 'check'), t(attention ? 'restoreAttention' : 'restoreDone')),
-        h('p', null, [countText(t, 'changedCount', changes(r.report)), verifiedReport(r.plugins) ? countText(t, 'installedCount', r.plugins.outcomeCounts.installed) : null,
-          receipt.restart ? t('restart') : null].filter(Boolean).join(' · ')),
+      return frame(h(React.Fragment, null,
+        h('header', null, resultTitle(attention ? 'restoreAttention' : 'restoreDone', attention ? 'info' : 'check'),
+          hint([countText(t, 'changedCount', changes(r.report)), verifiedReport(r.plugins) ? countText(t, 'installedCount', r.plugins.outcomeCounts.installed) : null,
+            receipt.restart ? t('restart') : null].filter(Boolean).join(' · '))),
+        facts([[t('source'), mode === 'local' ? isolated(receipt.fileName) : t('gistSource')]]),
         scripts.length ? note(`${t('pendingBuilds')}: ${scripts.join(', ')}. ${t('buildHint')}`, 'shield') : null,
         r.warnings?.length ? box('warning', h('strong', null, t('warnings')), list(r.warnings, w => [w])) : null,
         mode === 'standard' && !verifiedReport(r.plugins) ? hint(t('pluginUnknown')) : null,
         failed || skipped || missing?.length ? h('p', null, [failed ? `${t('failed')} ${failed}` : null, skipped ? `${t('skipped')} ${skipped}` : null, missing?.length ? `${t('stillMissing')} ${missing.length}` : null].filter(Boolean).join(' · ')) : null,
-        retry ? h('div', { className: 'dpgsp-group' }, hint(t('retryHint')), h('div', { className: 'dpgsp-actions' }, btn('preview-receipt-source', t('previewReceiptSource'), onRepreview, { kind: 'quiet', disabled: locked }))) : null,
+        retry ? hint(t('retryHint')) : null,
         details(t('resultDetails'), h('div', { className: 'dpgsp-stack' },
-          hint(`${t('source')}: ${receipt.fileName ?? r.ref?.id ?? '—'}`), h(FileChanges, { p: r.report, t }),
-          r.plugins ? heading(t('pluginResults'), h(PluginReport, { p: r.plugins, t })) : null)),
-        hint(t('undoLimit')), undoButton)
+          mode === 'local' ? null : facts([[t('source'), mono(r.ref.id)]]), h(FileChanges, { p: r.report, t }),
+          r.plugins ? heading(t('pluginResults'), h(PluginReport, { p: r.plugins, t })) : null))),
+        footer([undoButton, retry ? btn('preview-receipt-source', t('previewReceiptSource'), onRepreview, { disabled: locked }) : null], t('undoLimit')))
     }
-    function CopyReceipt({ url, t }) {
+    function ProfileStatus({ profile, stateKey, url, t }) {
       const [state, setState] = React.useState('idle')
       const field = React.useRef(null)
       const alive = React.useRef(false)
@@ -718,15 +774,20 @@ window.__ModuleLoader__.load({
           if (alive.current) setState('copied')
         } catch { if (alive.current) { setState('manual'); field.current?.focus(); field.current?.select() } }
       }
-      return h('section', { className: 'dpgsp-group', 'aria-label': t('ready') },
-        h('div', { className: 'dpgsp-ready' }, h('h3', { tabIndex: -1, className: 'dpgsp-line', 'data-focus': 'backup-receipt' }, icon('check'), t('ready')),
-          btn('copy', t('copy'), copy, { glyph: 'copy' })),
-        h('span', { role: 'status', className: state === 'idle' ? 'dpgsp-sr' : 'dpgsp-hint' }, state === 'copied' ? t('copied') : state === 'manual' ? t('manualCopy') : ''),
-        state === 'manual' ? h('label', { className: 'dpgsp-field' }, t('link'), h('input', { className: 'dpgsp-input', ref: field, readOnly: true, value: url, dir: 'ltr', onFocus: e => e.target.select() })) : null)
+      return h('section', { className: 'dpgsp-card', 'aria-label': t('localProfile') },
+        h('div', { className: 'dpgsp-summary' },
+          h('div', { className: 'dpgsp-identity' }, h('span', { className: 'dpgsp-mark' }, icon('pc', 18)),
+            h('div', null, title(t('localProfile')), profile ? h('p', { className: 'dpgsp-subtitle' }, t('profileName'), ': ', isolated(profile)) : null)),
+          h('div', { className: 'dpgsp-status' }, url
+            ? h('span', { tabIndex: -1, 'data-focus': 'backup-receipt' }, t('ready')) : h('span', { role: 'status' }, t(stateKey)),
+            url ? btn('copy', t(state === 'copied' ? 'copied' : 'copyLink'), copy, { glyph: state === 'copied' ? 'check' : 'copy', kind: 'quiet', title: t('copy'), 'aria-label': t('copy') }) : null,
+            h('span', { role: 'status', className: 'dpgsp-sr' }, state === 'copied' ? t('copied') : ''))),
+        state === 'manual' ? h('div', { className: 'dpgsp-copy-feedback dpgsp-group' }, h('p', { role: 'status' }, t('manualCopy')),
+          h('label', { className: 'dpgsp-field' }, t('link'), h('input', { className: 'dpgsp-input', ref: field, readOnly: true, value: url, dir: 'ltr', onFocus: e => e.target.select() }))) : null)
     }
     function LocalInventory({ status: s, t }) {
       return details(t('localInventory'), h('div', { className: 'dpgsp-stack' },
-        heading(`${t('defaultInventory')} (${s.files.length})`, list(s.files, f => [icon('file'), h('div', { className: 'dpgsp-iteminfo' }, mono(f.path)), badge(formatBytes(f.bytes))])),
+        heading(`${t('defaultInventory')} (${s.files.length})`, list(s.files, f => [icon('file'), h('div', { className: 'dpgsp-iteminfo' }, mono(f.path)), rowValue(formatBytes(f.bytes))])),
         heading(`${t('excluded')} (${s.excluded.length})`, list(s.excluded, f => [h('div', { className: 'dpgsp-iteminfo' }, mono(f.path), hint(codeText(t, 'code', f.code)))]))))
     }
 
@@ -742,6 +803,8 @@ window.__ModuleLoader__.load({
       const fileInput = React.useRef(null)
       const tokenInput = React.useRef(null)
       const moreButton = React.useRef(null)
+      const menuList = React.useRef(null)
+      const menuEntry = React.useRef(null)
       const [page, setPage] = React.useState({ name: 'home' })
       const [status, setStatus] = React.useState(null)
       const [statusError, setStatusError] = React.useState(null)
@@ -907,7 +970,7 @@ window.__ModuleLoader__.load({
           await afterWrite(call, active)
         }, error => {
           const uncertain = consumedPlanError(error)
-          if (uncertain) setRestoreReceipt({ mode: 'unknown', source: p.ref?.id ?? p.fileName })
+          if (uncertain) setRestoreReceipt({ mode: 'unknown', local: p.mode === 'local', source: p.ref?.id ?? p.fileName })
           setIssue({ error, uncertain })
         })
       }
@@ -1055,7 +1118,7 @@ window.__ModuleLoader__.load({
         }, error => setIssue({ error, uncertain: sent && consumedPlanError(error) }))
       }
 
-      const alerts = () => h(React.Fragment, null,
+      const alerts = (omitBusy = false) => h(React.Fragment, null,
         uploadCheck && page.name !== 'backup' ? box('warning', h('p', { role: 'alert' }, t(uploadCheck)), h('div', { className: 'dpgsp-actions' }, btn('retry-status', t('statusRetry'), retryStatus, { disabled: !!busy }))) : null,
         statusError ? h('div', { className: 'dpgsp-box dpgsp-warning', role: 'alert' },
           h('strong', null, t(status ? 'refreshFailed' : 'hostMissing')), hint(errorText(t, statusError)),
@@ -1063,9 +1126,7 @@ window.__ModuleLoader__.load({
         issue ? h('div', { className: `dpgsp-box dpgsp-${issue.error ? 'alert' : 'warning'}`, role: issue.error ? 'alert' : 'status' },
           issue.error ? h('p', null, errorText(t, issue.error)) : null, issue.key ? h('p', null, t(issue.key)) : null,
           issue.uncertain ? h('p', null, t('uncertain')) : null, issue.uploadUncertain ? h('p', null, t('uploadUncertain')) : null) : null,
-        busy ? h('p', { className: 'dpgsp-hint', role: 'status' }, t(busy)) : null)
-      const footer = (buttons, trust) => h('footer', { className: 'dpgsp-foot' }, trust ? note(trust, 'shield') : null,
-        h('div', { className: 'dpgsp-actions' }, ...buttons))
+        busy && !omitBusy ? h('p', { className: 'dpgsp-hint', role: 'status' }, t(busy)) : null)
       const isWrite = flight.current?.write === true
       const cancel = (back = false) => btn('cancel', t(back ? 'back' : 'cancel'), () => home(), { disabled: isWrite })
       const formId = `${uid}-form`
@@ -1079,12 +1140,34 @@ window.__ModuleLoader__.load({
             disabled: locked, 'aria-describedby': `${uid}-token-help` })),
         h('p', { className: 'dpgsp-hint', id: `${uid}-token-help` }, t('tokenPrivacy'), ' ', t('authRetry')))
       const retryProps = showRepair ? { type: 'submit', form: `${uid}-repair` } : {}
-      const goMore = (key, action, glyph) => btn(key, t(key), action, { kind: 'quiet', glyph, disabled: locked })
+      const goMore = (key, action, glyph) => btn(key, t(key), rootAction('more', action), { kind: 'quiet', glyph, disabled: locked })
+      // Ordinary disclosure: Tab walks the visible buttons. Arrow keys are a
+      // convenience; focus and selection never leave this component's own list.
+      const menuItems = () => Array.from(menuList.current?.querySelectorAll('button:not(:disabled)') ?? [])
+      React.useEffect(() => {
+        if (menu && menuEntry.current) {
+          const items = menuItems()
+          items[menuEntry.current === 'last' ? items.length - 1 : 0]?.focus()
+        }
+        menuEntry.current = null
+      }, [menu])
+      function menuKeys(e) {
+        if (locked || flight.current || e.defaultPrevented || e.nativeEvent?.isComposing || e.altKey || e.ctrlKey || e.metaKey) return
+        const fromButton = e.target === moreButton.current
+        if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key) || (!menu && (!fromButton || !e.key.startsWith('Arrow')))) return
+        e.preventDefault(); e.stopPropagation()
+        if (!menu) { opener.current = 'more'; menuEntry.current = e.key === 'ArrowUp' ? 'last' : 'first'; setMenu(true); return }
+        const items = menuItems()
+        if (!items.length) return
+        const i = items.indexOf(e.target)
+        const next = e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : e.key === 'ArrowDown' ? (i + 1) % items.length : (i > 0 ? i - 1 : items.length - 1)
+        items[next]?.focus()
+      }
       function menuView() {
-        return h('div', { className: 'dpgsp-menuwrap', onBlur: e => { if (!e.currentTarget.contains(e.relatedTarget)) setMenu(false) } },
-          btn('more', h(React.Fragment, null, t('more'), icon('chevron', 13)), () => { opener.current = 'more'; setMenu(v => !v) }, { kind: 'quiet', ref: moreButton, 'data-focus': 'more',
+        return h('div', { className: 'dpgsp-menuwrap', onKeyDown: menuKeys, onBlur: e => { if (!e.currentTarget.contains(e.relatedTarget)) setMenu(false) } },
+          btn('more', h(React.Fragment, null, t('more'), icon('chevron', 13)), rootAction('more', () => setMenu(v => !v)), { kind: 'quiet', ref: moreButton, 'data-focus': 'more',
             'aria-expanded': menu, 'aria-controls': menu ? `${uid}-more` : undefined, disabled: locked }),
-          menu ? h('nav', { id: `${uid}-more`, className: 'dpgsp-menulist', 'aria-label': t('more') },
+          menu ? h('nav', { id: `${uid}-more`, ref: menuList, className: 'dpgsp-menulist', 'aria-label': t('more') },
             goMore('local', () => move({ name: 'local' }), 'file'), goMore('configMode', () => openRestore('config'), 'down'),
             goMore('install', openPlugins, 'pkg'), goMore('target', openTarget, 'arrow'), goMore('diagnostics', () => move({ name: 'diagnostics' }), 'info'),
             status?.undo ? goMore('undo', () => openUndo(), 'shield') : null) : null)
@@ -1094,9 +1177,7 @@ window.__ModuleLoader__.load({
         return href ? h('a', { className: 'dpgsp-link', href, target: '_blank', rel: 'noopener noreferrer', referrerPolicy: 'no-referrer' }, href) : isolated(id ?? t('newGist'))
       }
       const receiptStamp = restoreReceipt?.result?.report?.undoStamp
-      const receiptUndo = txt(receiptStamp) && receiptStamp === status?.undo?.stamp ? h('div', { className: 'dpgsp-actions' }, btn('undo-review', t('undo'), rootAction('restore', () => openUndo(receiptStamp)), { kind: 'quiet', disabled: locked })) : null
-      const frame = (content, foot) => h('section', { className: 'dpgsp-panel', 'aria-label': t('tab') },
-        h('div', { className: 'dpgsp-body dpgsp-stack' }, content), foot)
+      const receiptUndo = txt(receiptStamp) && receiptStamp === status?.undo?.stamp ? btn('undo-review', t('undo'), rootAction('restore', () => openUndo(receiptStamp)), { disabled: locked }) : null
       const intro = (key, subtitle) => h('header', null, title(t(key)), subtitle ? h('p', { className: 'dpgsp-intro' }, t(subtitle)) : null)
       function homeView() {
         const uploaded = targetId && backupReceipt?.ref?.id === targetId ? backupReceipt : null
@@ -1105,21 +1186,22 @@ window.__ModuleLoader__.load({
           ? gistLink({ id: targetId }) : null)
         const dropped = Array.isArray(uploaded?.dropped) ? uploaded.dropped.filter(row => txt(row?.name)) : []
         const normal = status && compatible(status)
-        return frame(h('div', null,
-          h('header', { className: 'dpgsp-header' }, h('div', { className: 'dpgsp-titleline' }, h('span', { className: 'dpgsp-mark' }, icon('sync', 26)),
-            h('div', null, title(t('title')), h('p', { className: 'dpgsp-intro' }, t('intro')))), normal ? menuView() : null),
-          h('div', { className: 'dpgsp-section dpgsp-stack' },
-            !status || !compatible(status) ? h(React.Fragment, null, alerts(), status ? box('warning', h('p', null, t('staleHost')),
-              h('div', { className: 'dpgsp-actions' }, btn('retry-status', t('statusRetry'), retryStatus, { disabled: !!busy }))) : null) : h(React.Fragment, null,
-              readyUrl ? h(CopyReceipt, { key: readyUrl, url: readyUrl, t })
-                : h('p', { className: 'dpgsp-status' }, h('span', { className: 'dpgsp-dot', 'aria-hidden': true }), t(targetId ? 'linked' : 'noneYet')),
-              h('div', { className: 'dpgsp-actions dpgsp-homeactions' },
-                btn('backup', t('backup'), rootAction('backup', backup), { kind: 'primary', glyph: 'up', disabled: locked, 'data-focus': 'backup' }),
-                btn('restore', t('restore'), rootAction('restore', () => openRestore('standard')), { glyph: 'down', disabled: locked, 'data-focus': 'restore' })),
-              note([targetId ? t('overwriteHint') : null, t('privacy')].filter(Boolean).join(' ')),
-              alerts(),
-              dropped.length ? details(`${t('droppedDeps')} (${uploaded.droppedEntries ?? dropped.length})`, list(dropped, row => [isolated(row.name), mono(row.spec ?? '')])) : null,
-              h(RestoreReceipt, { receipt: restoreReceipt, t, undoButton: receiptUndo, locked, onRepreview: rootAction('restore', () => prepare('standard', restoreReceipt.result.ref.id)) })))))
+        const stateKey = !normal ? (!status && !statusError ? 'localBusy' : 'unavailable') : targetId ? 'linked' : history ? 'unlinked' : 'noneYet'
+        const homeFooter = normal ? h('footer', { className: 'dpgsp-homefoot' }, menuView(),
+          h('a', { className: 'dpgsp-help', href: GUIDE, target: '_blank', rel: 'noopener noreferrer', referrerPolicy: 'no-referrer', 'aria-label': t('openGuide') }, t('help'), icon('external', 12)),
+          h('div', { className: 'dpgsp-actions' },
+            btn('restore', t('restore'), rootAction('restore', () => openRestore('standard')), { disabled: locked, 'data-focus': 'restore' }),
+            btn('backup', t('backup'), rootAction('backup', backup), { kind: 'primary', disabled: locked, 'data-focus': 'backup' }))) : null
+        return h(React.Fragment, null,
+          h(ProfileStatus, { key: (normal && readyUrl) || 'local', profile: status?.profile, stateKey, url: normal ? readyUrl : null, t }),
+          normal ? frame(h(React.Fragment, null,
+            facts([[t('backupContents'), t('contents')], [t('uploadTarget'), t(targetId === null ? 'newGist' : 'linkedGist')]]),
+            note([targetId ? t('overwriteHint') : null, t('privacy')].filter(Boolean).join(' '), 'shield')), homeFooter) : null,
+          statusError || issue || uploadCheck || (status && (busy || !normal)) ? frame(h(React.Fragment, null,
+            alerts(!status && !statusError), status && !normal ? box('warning', h('p', null, t('staleHost')),
+              h('div', { className: 'dpgsp-actions' }, btn('retry-status', t('statusRetry'), retryStatus, { disabled: !!busy }))) : null)) : null,
+          normal && dropped.length ? frame(details(`${t('droppedDeps')} (${uploaded.droppedEntries ?? dropped.length})`, list(dropped, row => [isolated(row.name), mono(row.spec ?? '')]))) : null,
+          normal && restoreReceipt ? h(RestoreReceipt, { receipt: restoreReceipt, t, undoButton: receiptUndo, locked, onRepreview: rootAction('restore', () => prepare('standard', restoreReceipt.result.ref.id)) }) : null)
       }
       function sourceView() {
         return frame(h(React.Fragment, null, intro(page.mode === 'config' ? 'configMode' : 'restore', 'sourceIntro'),
@@ -1167,10 +1249,9 @@ window.__ModuleLoader__.load({
       function localView() {
         return frame(h(React.Fragment, null, intro('local', 'localHint'),
           h('p', null, t('configScope')), note(t(includeMachine ? 'machineIncluded' : 'machineExcluded')),
-          h('div', { className: 'dpgsp-actions' },
-            h('input', { type: 'file', hidden: true, accept: '.json,application/json', ref: fileInput, onChange: chooseFile }),
-            btn('pick-file', t('import'), () => fileInput.current?.click(), { kind: 'primary', glyph: 'file', disabled: locked, 'data-focus': 'pick' }),
-            !locked ? h('a', { className: 'dpgsp-btn', 'data-action': 'export', href: `${API}/export${includeMachine ? '?include=machine' : ''}`, download: true }, icon('up', 16), t('export')) : null), alerts()), footer([cancel(true)]))
+          h('input', { type: 'file', hidden: true, accept: '.json,application/json', ref: fileInput, onChange: chooseFile }), alerts()),
+          footer([cancel(true), !locked ? h('a', { className: 'dpgsp-btn', 'data-action': 'export', href: `${API}/export${includeMachine ? '?include=machine' : ''}`, download: true }, t('export')) : null,
+            btn('pick-file', t('import'), () => fileInput.current?.click(), { kind: 'primary', disabled: locked, 'data-focus': 'pick' })]))
       }
       function pluginsView() {
         const p = page.inventory
@@ -1221,8 +1302,9 @@ window.__ModuleLoader__.load({
       return h('div', { ref: root, className: 'dpgsp-root', 'data-view': visible, 'data-mode': page.mode,
         onKeyDown: e => {
           if (e.key !== 'Escape' || e.defaultPrevented || e.nativeEvent?.isComposing) return
+          if (flight.current?.write) { e.preventDefault(); e.stopPropagation(); return }
           if (menu) { e.preventDefault(); e.stopPropagation(); setMenu(false); moreButton.current?.focus() }
-          else if (page.name !== 'home' && !isWrite) { e.preventDefault(); e.stopPropagation(); home() }
+          else if (page.name !== 'home') { e.preventDefault(); e.stopPropagation(); home() }
         } }, h('style', null, CSS), views[visible](),
         h('p', { className: !announcement || announcement === 'reviewDone' ? 'dpgsp-sr' : 'dpgsp-hint', role: 'status', 'aria-live': 'polite', 'aria-atomic': true }, announcement ? t(announcement) : ''))
     }
@@ -1231,9 +1313,12 @@ window.__ModuleLoader__.load({
       apply(ctx) {
         ctx.effect(() => ctx.locale.register(NS, DICT), `${NS}: dictionaries`)
         const t = ctx.locale.bind(NS)
-        ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
-          name: 'settings.plugins.tab', id: NS, order: TAB_ORDER, label: () => t('tab'), locale: NS,
+        ctx.slots.inject('settings.section', () => ctx.slots.register({
+          name: 'settings.section', id: NS, order: SECTION_ORDER, label: () => t('section'), locale: NS,
         }, () => h(Panel, { ctx, t })))
+        // The shell owns the nav button, selection, size and label. This optional
+        // decorative seat is matched by section id; it does not add a page.
+        ctx.slots.inject('settings.section.icon', () => ctx.slots.register({ name: 'settings.section.icon', id: NS }, ({ size }) => icon('sync', size)))
       },
     }
   },

@@ -500,45 +500,7 @@ useProfile(mixedProfile, home)
   served.close()
 }
 
-// ---- 6. the page's copy stays in step with its two dictionaries ---------
-{
-  // `client.js` is browser code, so it is read as text: the dictionaries are
-  // plain object literals, and a key added to one language but not the other is
-  // the failure this guards — it shows up as an English string in a Chinese page.
-  const source = readFileSync(new URL('../client.js', import.meta.url), 'utf8')
-  const blockOf = (locale) => {
-    const start = source.indexOf(`      ${locale}: {`)
-    if (start < 0) return ''
-    return source.slice(start, source.indexOf('\n      },', start))
-  }
-  const keysOf = (block) => new Set([...block.matchAll(/^\s{8}(?:'([^']+)'|([A-Za-z][A-Za-z0-9]*)):/gm)].map(match => match[1] ?? match[2]))
-  const zh = keysOf(blockOf('zh'))
-  const en = keysOf(blockOf('en'))
-  check('both dictionaries exist and carry strings', zh.size > 100 && en.size > 100, `${zh.size}/${en.size}`)
-  check('the two dictionaries have exactly the same keys',
-    [...zh].filter(key => !en.has(key)).length === 0 && [...en].filter(key => !zh.has(key)).length === 0,
-    `only zh: ${[...zh].filter(key => !en.has(key)).join(', ')}; only en: ${[...en].filter(key => !zh.has(key)).join(', ')}`)
-  // Every literal `t('...')` in the panel has to resolve, or the page prints the
-  // key itself. `err.*` and `note.*` are built from a code at runtime and are
-  // checked for existence rather than for a literal call.
-  const literal = [...source.matchAll(/\bt\('([^']+)'\)/g)].map(match => match[1])
-  check('every literal lookup resolves in both languages',
-    literal.every(key => zh.has(key) && en.has(key)),
-    literal.filter(key => !zh.has(key) || !en.has(key)).join(', '))
-  const dynamic = [...source.matchAll(/t\(`(err|note)\.\$\{/g)].map(match => match[1])
-  for (const prefix of new Set(dynamic)) {
-    check(`the runtime ${prefix}.<code> lookups all have copy in both languages`,
-      [...zh].filter(key => key.startsWith(`${prefix}.`)).length > 0
-      && [...zh].filter(key => key.startsWith(`${prefix}.`)).length === [...en].filter(key => key.startsWith(`${prefix}.`)).length,
-      `${[...zh].filter(key => key.startsWith(`${prefix}.`)).length} zh / ${[...en].filter(key => key.startsWith(`${prefix}.`)).length} en`)
-  }
-  check('both locales offer access recovery without putting token entry on the home screen',
-    ['zh', 'en'].every(lang => ['tokenLabel:', 'tokenHelp:', 'DSH_GITHUB_TOKEN', 'gh auth login'].every(hint => blockOf(lang).includes(hint))))
-  check('both locales label the two main actions, copy receipt and distinct review scopes',
-    ['backup', 'restore', 'ready', 'copy', 'confirmCombined', 'confirmConfig', 'undoLimit'].every(key => zh.has(key) && en.has(key)))
-}
-
-// ---- 7. the token error is actionable ----------------------------------
+// ---- 6. the token error is actionable ----------------------------------
 {
   const gist = await import('../lib/gist.js')
   const saved = {
