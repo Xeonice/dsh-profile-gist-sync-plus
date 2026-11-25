@@ -63,7 +63,7 @@ check('the token travels in the header only',
   && !JSON.stringify(creation?.body ?? {}).includes(TEST_TOKEN),
   String(creation?.headers?.authorization ?? '').slice(0, 12))
 check('the Gist description and user agent identify the fork',
-  creation?.body?.description?.includes('dsh-profile-gist-sync-plus') === true && creation?.headers['user-agent'] === 'dsh-profile-gist-sync-plus')
+  creation?.body?.description?.includes('dsh-multi-device-config-sync') === true && creation?.headers['user-agent'] === 'dsh-multi-device-config-sync')
 check('the created id is remembered in this profile',
   existsSync(settingsFile) && JSON.parse(readFileSync(settingsFile, 'utf8')).gistId === NEW_ID)
 

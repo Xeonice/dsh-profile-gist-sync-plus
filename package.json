@@ -1,6 +1,10 @@
 {
-  "name": "dsh-profile-gist-sync-plus",
-  "version": "1.4.1",
+  "name": "dsh-multi-device-config-sync",
+  "version": "1.5.0",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "type": "module",
   "description": "Multi-device config sync: back up a DSH profile to a GitHub Gist and preview file changes and missing plugins before restoring on another machine. · 多端配置同步：把 DSH 配置备份到 Gist，在另一台机器先预览配置变更和缺失插件，再确认恢复。",
   "icon": "icon.svg",
@@ -48,6 +52,7 @@
     "profile"
   ],
   "author": "Meta-Virgo",
+  "contributors": ["Xeonice (https://github.com/Xeonice)"],
   "license": "MIT",
   "repository": {
     "type": "git",

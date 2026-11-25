@@ -14,7 +14,7 @@ const marker = '    function Panel('
 assert.equal(source.split(marker).length, 2, 'identify the boundary before the real panel')
 const pure = 'sourceId, gistLink, filePlan, validCloudPlan, actionable, compatible, verifiedReport, incomplete, sourceKind'
 const sandbox = { window: { __ModuleLoader__: { load(module) {
-  assert.equal(module.id, 'dsh-profile-gist-sync-plus')
+  assert.equal(module.id, 'dsh-multi-device-config-sync')
   module.factory(name => { assert.equal(name, 'react'); return Object.freeze({}) })
 } } } }
 vm.runInNewContext(source.replace(marker, `    globalThis.subject = { ${pure} }\n${marker}`), sandbox, { timeout: 500, filename: 'client.js' })
@@ -36,8 +36,8 @@ check('other sites, insecure links and credential-bearing URLs are not backup so
   [`http://gist.github.com/${id}`, `https://example.invalid/${id}`, `https://user@gist.github.com/${id}`, `${canonical}?extra=private`, `${canonical}#revision`].every(s => f.sourceId(s) == null))
 check('copy uses the confirmed Gist even if the upstream HTML URL is unrelated', f.gistLink({ id, htmlUrl: 'https://example.invalid/unrelated' }) === canonical)
 check('a receipt without a real ID provides no copy target', f.gistLink({ htmlUrl: canonical }) == null)
-check('the UI still supports the 1.3.0 Host protocol as well as the 1.4.0 release',
-  ['1.3.0', '1.4.0'].every(version => f.compatible({ version, cloud: {} })))
+check('the npm client keeps the 1.3 Host protocol and accepts both Git and npm releases',
+  ['1.3.0', '1.4.0', '1.4.1', '1.5.0'].every(version => f.compatible({ version, cloud: {} })))
 check('a pre-1.3 Host or a status without cloud capabilities remains unsupported',
   !f.compatible({ version: '1.2.99', cloud: {} }) && !f.compatible({ version: '1.4.0' }))
 check('a count that hides a file change is rejected before confirmation', !f.filePlan({ ...fixture(true), counts: fixture().counts }))

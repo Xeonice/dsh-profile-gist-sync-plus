@@ -145,8 +145,9 @@ let unresolved = null
 try { backup.profileRoot() } catch (error) { unresolved = error }
 check('an ambiguous profile is not selected just because upstream is installed', unresolved?.code === 'no-profile', unresolved?.message)
 const plusOnly = join(single, 'profiles', 'only-one')
-mkdirSync(join(plusOnly, 'node_modules', 'dsh-profile-gist-sync-plus'))
-check('the Plus installation resolves its own profile', backup.profileRoot() === plusOnly, backup.profileRoot())
+mkdirSync(join(plusOnly, 'node_modules', 'dsh-multi-device-config-sync'))
+writeFileSync(join(plusOnly, 'node_modules', 'dsh-multi-device-config-sync', 'package.json'), JSON.stringify({ name: 'dsh-multi-device-config-sync', version: '1.5.0' }))
+check('the npm installation resolves its own profile', backup.profileRoot() === plusOnly, backup.profileRoot())
 backup.rememberProfile({ name: 'reported', dir: profile })
 check('what the host reports wins over everything else',
   backup.profileRoot() === profile && backup.profileSource() === 'host', backup.profileSource())

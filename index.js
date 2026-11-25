@@ -1,5 +1,5 @@
 /**
- * Host half of dsh-profile-gist-sync-plus.
+ * Host half of dsh-multi-device-config-sync.
  *
  * The settings page and the `config_backup_plus` agent tool share the backup
  * format and Gist transport. The combined restore-and-install flow belongs to
@@ -47,6 +47,6 @@ export function apply(ctx) {
   // resource, and an effect callback must return a disposer — Cordis fails the
   // whole activation with "Invalid effect" when one returns anything else.
   reportProfile(ctx)
-  ctx.effect(() => registerRoutes(ctx), 'dsh-profile-gist-sync-plus: HTTP routes')
-  ctx.effect(() => registerTool(ctx), 'dsh-profile-gist-sync-plus: config_backup_plus tool')
+  ctx.effect(() => registerRoutes(ctx), 'dsh-multi-device-config-sync: HTTP routes')
+  ctx.effect(() => registerTool(ctx), 'dsh-multi-device-config-sync: config_backup_plus tool')
 }

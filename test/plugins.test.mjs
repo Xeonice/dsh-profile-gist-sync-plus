@@ -29,21 +29,21 @@ const workspace = tempDir('dpg-plugins-')
 const home = join(workspace, 'home')
 
 /**
- * The publisher's machine: this very plugin is a local link into a checkout, one
+ * The publisher's machine: one plugin is a local link into a checkout, another
  * plugin is a plain registry range, and `dsh.profile.bundles` still names the
  * linked plugin — the case the task requires to be left alone.
  */
-const linkedCheckout = join(workspace, 'dsh-profile-gist-sync-plus')
+const linkedCheckout = join(workspace, 'example-linked-plugin')
 const linkedSpec = `link:${linkedCheckout.replaceAll('\\', '/')}`
 mkdirSync(linkedCheckout, { recursive: true })
 writeFileSync(join(linkedCheckout, 'package.json'), `${JSON.stringify({
-  name: 'dsh-profile-gist-sync-plus',
+  name: 'example-linked-plugin',
   version: '1.0.0',
 }, null, 2)}\n`)
 
 const linkedProfile = makeProfile(join(home, 'profiles', 'linked'), {
-  dependencies: { 'dsh-profile-gist-sync-plus': linkedSpec, 'some-plugin': '^1.0.0' },
-  bundles: ['@deepseek-ai/dsh-base', 'dsh-profile-gist-sync-plus'],
+  dependencies: { 'example-linked-plugin': linkedSpec, 'some-plugin': '^1.0.0' },
+  bundles: ['@deepseek-ai/dsh-base', 'example-linked-plugin'],
 })
 
 // ---- 1. what an upload must not carry ----------------------------------
@@ -53,21 +53,21 @@ const manifestEntry = exported.backup.files.find(file => file.path === 'package.
 const exportedDeps = manifestEntry.json.dependencies
 
 check('a link: dependency is not in the exported document',
-  exportedDeps['dsh-profile-gist-sync-plus'] === undefined, JSON.stringify(exportedDeps))
+  exportedDeps['example-linked-plugin'] === undefined, JSON.stringify(exportedDeps))
 check('a normal semver dependency is untouched', exportedDeps['some-plugin'] === '^1.0.0', exportedDeps['some-plugin'])
 check('nothing else in package.json changes',
   manifestEntry.json.name === 'dsh-profile-test'
   && manifestEntry.json.private === true
-  && JSON.stringify(manifestEntry.json.dsh.profile.bundles) === JSON.stringify(['@deepseek-ai/dsh-base', 'dsh-profile-gist-sync-plus']),
+  && JSON.stringify(manifestEntry.json.dsh.profile.bundles) === JSON.stringify(['@deepseek-ai/dsh-base', 'example-linked-plugin']),
   JSON.stringify(manifestEntry.json))
 check('the bundle list keeps the name whose dependency was dropped',
-  manifestEntry.json.dsh.profile.bundles.includes('dsh-profile-gist-sync-plus'))
+  manifestEntry.json.dsh.profile.bundles.includes('example-linked-plugin'))
 check('the drop is reported to the caller',
-  exported.dropped.length === 1 && exported.dropped[0].name === 'dsh-profile-gist-sync-plus',
+  exported.dropped.length === 1 && exported.dropped[0].name === 'example-linked-plugin',
   JSON.stringify(exported.dropped))
 check('the report names the dropped spec', exported.dropped[0]?.spec === linkedSpec, exported.dropped[0]?.spec)
 check('and the plugin it pointed at, read from its own package.json',
-  exported.dropped[0]?.package === 'dsh-profile-gist-sync-plus' && exported.dropped[0]?.version === '1.0.0',
+  exported.dropped[0]?.package === 'example-linked-plugin' && exported.dropped[0]?.version === '1.0.0',
   `${exported.dropped[0]?.package}@${exported.dropped[0]?.version}`)
 check('the report carries an exclusion code, like every other exclusion',
   exported.dropped[0]?.code === 'local-dependency', exported.dropped[0]?.code)
@@ -168,14 +168,14 @@ const fresh = readFileSync(join(freshProfile, 'package.json'), 'utf8')
 check('restoring a real upload carries no machine-local spec',
   !fresh.includes('link:') && !fresh.includes(linkedCheckout.replaceAll('\\', '/')), fresh)
 check('and the plugin the publisher dropped does not appear as a dependency',
-  JSON.parse(fresh).dependencies['dsh-profile-gist-sync-plus'] === undefined, fresh)
+  JSON.parse(fresh).dependencies['example-linked-plugin'] === undefined, fresh)
 check('while the rest of the publisher’s manifest does arrive',
   JSON.parse(fresh).dependencies['some-plugin'] === '^1.0.0', fresh)
 
 // ---- 3. the missing-plugin computation ---------------------------------
 useProfile(linkedProfile, home)
 check('declared plugins come from dependencies first, in manifest order',
-  plugins.declaredPlugins(linkedProfile)[0]?.name === 'dsh-profile-gist-sync-plus'
+  plugins.declaredPlugins(linkedProfile)[0]?.name === 'example-linked-plugin'
   && plugins.declaredPlugins(linkedProfile)[0]?.kind === 'both',
   JSON.stringify(plugins.declaredPlugins(linkedProfile)))
 check('a name only the bundle list declares is still declared',
@@ -214,7 +214,7 @@ function hostOf(pluginManager) {
 // A profile declaring one installable plugin and one local link, on a machine
 // where the link target does not exist.
 const mixedProfile = makeProfile(join(home, 'profiles', 'mixed'), {
-  dependencies: { 'some-plugin': '^1.0.0', 'dsh-profile-gist-sync-plus': linkedSpec },
+  dependencies: { 'some-plugin': '^1.0.0', 'example-linked-plugin': linkedSpec },
   bundles: ['@deepseek-ai/dsh-base'],
 })
 useProfile(mixedProfile, home)
@@ -226,7 +226,7 @@ useProfile(mixedProfile, home)
       { name: '@deepseek-ai/dsh-base', availability: 'installed', installed: true, version: '1.0.0' },
       // The manager reports the recorded spec as `source`, prefixed with the
       // name; a link: target it cannot resolve is reported as `missing`.
-      { name: 'dsh-profile-gist-sync-plus', availability: 'missing', installed: true, source: `dsh-profile-gist-sync-plus@${linkedSpec}` },
+      { name: 'example-linked-plugin', availability: 'missing', installed: true, source: `example-linked-plugin@${linkedSpec}` },
     ],
   })
   const inventory = await plugins.pluginInventory(hostOf(manager))
@@ -234,7 +234,7 @@ useProfile(mixedProfile, home)
   check('it reports both inventory sources separately',
     inventory.sources.plugins === true && inventory.sources.bundles === true, JSON.stringify(inventory.sources))
   check('exactly the two declared plugins that are absent are missing',
-    JSON.stringify(inventory.missing.map(entry => entry.name)) === JSON.stringify(['some-plugin', 'dsh-profile-gist-sync-plus']),
+    JSON.stringify(inventory.missing.map(entry => entry.name)) === JSON.stringify(['some-plugin', 'example-linked-plugin']),
     JSON.stringify(inventory.missing.map(entry => entry.name)))
   check('the local link is missing but not installable here',
     inventory.missing[1]?.resolvable === false && inventory.missing[1]?.note === 'local-path'
@@ -290,7 +290,7 @@ useProfile(mixedProfile, home)
   // evidence keeps it from being reported as missing. Its own profile, so no
   // later check sees this machine as already having the package.
   const onDiskProfile = makeProfile(join(home, 'profiles', 'on-disk'), {
-    dependencies: { 'some-plugin': '^1.0.0', 'dsh-profile-gist-sync-plus': linkedSpec },
+    dependencies: { 'some-plugin': '^1.0.0', 'example-linked-plugin': linkedSpec },
     bundles: ['@deepseek-ai/dsh-base'],
   })
   useProfile(onDiskProfile, home)
@@ -302,7 +302,7 @@ useProfile(mixedProfile, home)
     !inventory.missing.some(entry => entry.name === 'some-plugin'),
     JSON.stringify(inventory.missing.map(entry => entry.name)))
   check('the link: dependency is still missing, since its target is absent',
-    inventory.missing.some(entry => entry.name === 'dsh-profile-gist-sync-plus'),
+    inventory.missing.some(entry => entry.name === 'example-linked-plugin'),
     JSON.stringify(inventory.missing.map(entry => entry.name)))
 }
 
@@ -393,13 +393,13 @@ useProfile(mixedProfile, home)
 {
   // A bundle row with no `source` still has the manifest spec to fall back on.
   useProfile(mixedProfile, home)
-  const bare = stubManager({ bundles: [{ name: 'some-plugin', availability: 'missing' }, { name: 'dsh-profile-gist-sync-plus', availability: 'missing' }] })
+  const bare = stubManager({ bundles: [{ name: 'some-plugin', availability: 'missing' }, { name: 'example-linked-plugin', availability: 'missing' }] })
   const ran = await plugins.installMissingPlugins(hostOf(bare))
   check('with no reported source the manifest spec is used',
     ran.results.find(result => result.name === 'some-plugin')?.installSpec === 'some-plugin@^1.0.0',
     JSON.stringify(ran.results))
   check('and the local link is still refused, not installed by name',
-    !bare.installed.includes('dsh-profile-gist-sync-plus'), JSON.stringify(bare.installed))
+    !bare.installed.includes('example-linked-plugin'), JSON.stringify(bare.installed))
 }
 
 // ---- 4. the service-absent cases ---------------------------------------

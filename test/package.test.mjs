@@ -84,12 +84,16 @@ check('every lib module is shipped',
 check('the client half is shipped', shipped.includes('client.js'))
 check('the bundle patch is shipped', shipped.includes('cordis.patch.yml'))
 const packedManifest = JSON.parse(readFileSync(join(installed, 'package.json'), 'utf8'))
-check('the packed manifest names the independent fork and version',
-  packedManifest.name === 'dsh-profile-gist-sync-plus' && packedManifest.version === '1.4.1'
+check('the tarball identifies the public npm release and its source repository',
+  packedManifest.name === 'dsh-multi-device-config-sync' && packedManifest.version === '1.5.0'
+  && packedManifest.publishConfig.access === 'public' && packedManifest.publishConfig.registry === 'https://registry.npmjs.org/'
   && packedManifest.repository.url === 'git+https://github.com/Xeonice/dsh-profile-gist-sync-plus.git')
+check('installing the public bundle introduces no dependencies and runs no lifecycle scripts',
+  ['dependencies', 'optionalDependencies', 'peerDependencies'].every(key => Object.keys(packedManifest[key] ?? {}).length === 0)
+  && Object.keys(packedManifest.scripts ?? {}).every(hook => hook === 'test'))
 const patch = readFileSync(join(installed, 'cordis.patch.yml'), 'utf8')
-check('the bundle inserts the fork under its own row and module name',
-  /^\s*- id: dsh-profile-gist-sync-plus$/m.test(patch) && /^\s*name: dsh-profile-gist-sync-plus$/m.test(patch))
+check('the stable Cordis row loads the renamed npm package (not the old Git module)',
+  /^\s*- id: dsh-profile-gist-sync-plus$/m.test(patch) && /^\s*name: dsh-multi-device-config-sync$/m.test(patch))
 check('both packaged plugin titles and help text use the localized display name',
   [['zh', '多端配置同步'], ['en', 'Multi-device config sync']].every(([lang, title]) => {
     const copy = JSON.parse(readFileSync(join(installed, 'locale', `${lang}.json`), 'utf8'))

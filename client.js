@@ -1,9 +1,10 @@
 /** Settings → Multi-device config sync. Plans and credentials live only for the current interaction. */
 window.__ModuleLoader__.load({
-  id: 'dsh-profile-gist-sync-plus',
+  id: 'dsh-multi-device-config-sync',
   factory(require) {
     const React = require('react')
     const h = React.createElement
+    // Package identity changed for npm; the settings section and HTTP API did not.
     const NS = 'dsh-profile-gist-sync-plus'
     const API = '/dsh-profile-gist-sync-plus/api'
     const SECTION_ORDER = 16
@@ -181,6 +182,10 @@ window.__ModuleLoader__.load({
         'note.unsupported-source': '不支持自动安装此来源',
         'note.invalid-name': '包名无效',
         'note.stale-plan': '安装清单已改变，请重新预览',
+        'note.legacy-sync-package': '不自动补装此插件的旧 Git 包，请在「插件」中管理',
+        'note.local-sync-package': '同步插件本身请在「插件」中安装或更新',
+        'code.legacy-sync-package': '已跳过旧版同步插件，不会从备份安装或启用',
+        'code.local-sync-package': '保留本机同步插件的安装来源和启用状态',
         'code.dependency': '依赖目录',
         'code.lockfile': '锁文件',
         'code.hidden-dir': '隐藏目录',
@@ -383,6 +388,10 @@ window.__ModuleLoader__.load({
         'note.unsupported-source': 'This source does not support automatic installation',
         'note.invalid-name': 'Invalid package name',
         'note.stale-plan': 'The install list changed; preview again',
+        'note.legacy-sync-package': 'The old Git edition is not installed automatically. Manage it in Plugins.',
+        'note.local-sync-package': 'Install or update the sync plugin itself in Plugins.',
+        'code.legacy-sync-package': 'Old sync package skipped; it will not be installed or enabled from the backup',
+        'code.local-sync-package': 'The installed sync package keeps its local source and activation setting',
         'code.dependency': 'Dependencies',
         'code.lockfile': 'Lockfile',
         'code.hidden-dir': 'Hidden directory',
