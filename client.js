@@ -1,13 +1,4 @@
-/**
- * Browser half of dsh-profile-gist-sync-plus: one page inside Settings → Built-in plugins.
- *
- * A new machine previews a Gist snapshot, then confirms that specific plan
- * once. Upload, config-only sync, local file restore and undo remain separate.
- *
- * The page renders into the slot the Plugins section declares
- * (`settings.plugins.tab`), uses the host's theme tokens for every visible
- * colour, and talks to the Host half only through that half's HTTP routes.
- */
+/** Settings → Built-in plugins. Plans and credentials live only for the current interaction. */
 window.__ModuleLoader__.load({
   id: 'dsh-profile-gist-sync-plus',
   factory(require) {
@@ -17,119 +8,169 @@ window.__ModuleLoader__.load({
     const API = '/dsh-profile-gist-sync-plus/api'
     const TAB_ORDER = 71
 
-    /** UI strings. English is the fallback every other locale resolves to. */
     const DICT = {
       zh: {
         tab: '配置同步 Plus',
         title: '配置同步 Plus',
-        subtitle: '从已有 Gist 恢复这台机器，或把本机配置备份到 Gist。',
-        setupTitle: '新机恢复：配置和插件',
-        setupHint: '填入旧机的 Gist ID 或链接，无需先保存。预览只读取备份，不写配置、不安装插件。',
-        previewAction: '预览恢复',
-        previewBusy: '正在读取 Gist 和插件清单…',
+        intro: '在不同电脑之间迁移配置和插件。',
+        backup: '备份本机',
+        restore: '从备份恢复',
+        more: '更多',
+        back: '返回首页',
+        cancel: '取消',
+        next: '查看预览',
+        previewAgain: '重新预览',
+        previewReceiptSource: '重新预览此来源',
+        noneYet: '尚未备份',
+        linked: '已关联备份目标',
+        ready: '备份已就绪',
+        copy: '复制备份链接',
+        copied: '已复制',
+        manualCopy: '未能自动复制，请手动复制下方链接。',
+        link: '备份链接',
+        openGist: '打开 Gist',
+        privacy: '新建备份不公开列出，持链接者可读。配置文本不会自动脱敏。',
+        overwriteHint: '再次备份会覆盖已关联目标中的备份文件。',
+        overwriteReview: '更新已关联的备份？',
+        visibilityKept: '更新不会更改目标的可见性；原本公开的 Gist 仍然公开。',
+        uploadConfirm: '确认更新备份',
+        uploadRetry: '重新备份',
+        uploadScope: '上传配置和插件清单，不含插件本体或凭据库。请先检查文本文件中是否含有私密信息。',
+        uploadTarget: '上传目标',
+        newGist: '新建未公开列出的 Gist',
+        uploadUncertain: '未能核实这次上传的结果。请先检查本机记录和目标 Gist，不要重复上传。',
+        refreshFailed: '未能刷新本机状态。请重新读取状态，不必重复刚才的操作。',
+        hostMissing: '当前无法读取本机配置状态。',
+        staleHost: '当前服务未提供所需的备份接口。请重启 DSH 后再试。',
+        statusRetry: '重新读取本机状态',
+        localBusy: '正在读取本机状态…',
+        uploadBusy: '正在备份本机…',
+        previewBusy: '正在查看这次恢复会更改什么…',
+        applyBusy: '正在按预览恢复，请勿重复操作。',
+        pluginsBusy: '正在核对本机插件清单…',
+        installBusy: '正在安装已核对的插件…',
+        undoBusy: '正在撤销配置恢复…',
+        busy: '处理中…',
+        sourceIntro: '粘贴另一台电脑的备份链接，先看看这台电脑会改什么。',
+        newMachineStep1: '也可以输入 Gist ID。查看预览不会写入配置、安装插件或更改上传目标。',
+        sourceLabel: '备份链接或 Gist ID',
+        sourcePlaceholder: '粘贴 gist.github.com 备份链接或 ID',
+        changeSource: '换用其他来源',
+        source: '来源',
+        targetProfile: '本机 profile',
         previewTitle: '恢复预览',
-        previewSource: '来源 Gist',
-        previewTarget: '目标 profile',
-        previewChanges: '配置文件变更',
-        previewFiles: '查看文件和保留项',
-        previewInstall: '将安装的插件',
-        previewSkip: '不支持，将跳过',
-        previewNone: '无需下载新的插件包。',
-        alreadyEnable: '已安装，将加入启用清单',
+        configMode: '仅恢复配置',
+        configPreview: '仅恢复配置：预览',
+        localPreview: '本地文件：恢复预览',
+        configScope: '仅写配置，不安装插件。使用完整文件范围，备份中的 .npmrc 等包管理策略文件也可能覆盖本机设置。',
+        standardTrust: '仅在信任备份和插件来源时恢复。更改影响此 profile 的所有会话；构建脚本如需批准，请单独核对。',
+        configTrust: '仅在信任整份备份时恢复。更改影响此 profile 的所有会话。',
+        configFiles: '配置文件',
+        changeFiles: '变更 %n 个配置文件',
+        fileCount: '%n 个文件',
+        add: '新增',
+        overwrite: '覆盖',
+        merge: '合并',
+        identical: '不变',
+        retained: '保留或跳过',
+        showUnchanged: '未变更的文件',
+        pluginsToInstall: '安装 %n 个插件',
+        unresolved: '无法自动安装，将跳过',
+        noSpec: '未记录可核实的来源',
+        installSource: '安装来源',
+        alreadyEnable: '已安装，恢复后加入启用清单',
         alreadyOther: '其他已安装的包',
-        specLabel: '来源 / 安装规格',
-        noSpec: '没有可显示的安装来源',
-        snapshotHint: '确认仅使用本次预览的快照。若预览过期或本机状态改变，请重新预览。',
-        trustHint: '仅在信任此 Gist 和所列安装来源时确认。配置和插件可能运行代码，并影响此 profile 的所有会话。本次确认不会批准新的构建脚本。',
-        undoLimit: '撤销只还原配置文件，不会卸载已安装的包。',
-        unavailablePlan: '无法核实待安装的包，不能确认组合恢复。若取消后选择「仅同步配置」，将按原版的完整文件恢复规则写入配置，不沿用此预览的跳过清单；备份中的 .npmrc 等文件也会写入。仅在信任整份备份时使用。',
-        confirmAction: '确认恢复配置并安装插件',
-        installBusy: '正在恢复配置并安装插件，请勿重复操作…',
-        restoreDone: '已按预览恢复配置和插件',
-        restoreAttention: '恢复结果：仍有事项需处理',
-        configRestored: '已恢复配置文件',
-        warningsTitle: '提醒',
-        pluginResultTitle: '插件安装结果',
-        pluginResultUnknown: '无法核实完整的插件安装结果。',
+        cannotVerify: '无法核实插件清单，不能确认组合恢复。',
+        cannotVerifyHint: '可到「插件」页核对本机安装情况；如只想恢复配置，请从「更多」打开范围不同的独立预览。',
+        noChanges: '已是备份中的状态',
+        filesSame: '没有配置文件需要更改。',
+        filesPluginsSame: '没有配置文件需要更改，也没有插件需要安装。',
+        noApplicable: '没有可自动应用的更改。请核对保留或需手动处理的项目。',
+        confirmCombined: '恢复并安装 %n 个插件',
+        confirmOne: '恢复并安装 1 个插件',
+        confirmFiles: '确认恢复配置',
+        confirmConfig: '确认仅恢复配置',
+        noInstall: '此操作不安装插件。',
+        reviewDone: '预览已就绪，尚未执行恢复。',
+        restoreDone: '恢复完成',
+        restoreUnverified: '上次恢复的结果尚未核实',
+        restoreAttention: '配置已恢复，仍有事项需处理',
+        changedCount: '已更改 %n 个配置文件',
+        installedCount: '已安装 %n 个插件',
+        resultDetails: '查看结果',
+        warnings: '提醒',
+        restart: '重启 DSH 后生效。',
+        uncertain: '未取得可核实的结果，部分操作可能已完成。请先核对本机状态和撤销记录，再重新预览。',
+        pluginUnknown: '无法核实完整的插件安装结果。',
+        pluginResults: '插件安装结果',
         stillMissing: '仍缺少的包',
+        installed: '已安装',
+        present: '已存在',
+        failed: '失败',
+        skipped: '跳过',
+        pendingBuilds: '待单独批准的构建脚本',
+        buildHint: '请到「插件」页核对脚本来源，需要时单独批准；本页不会批准构建。',
+        retryHint: '处理这些事项后，重新预览可核实还缺哪些插件。',
+        undo: '撤销上次配置恢复',
+        undoConfirm: '确认撤销配置',
+        undoScope: '还原到这次恢复之前的配置，移除当时新增的文件；之后对这些文件的编辑可能丢失。',
+        undoLimit: '撤销只还原配置，不卸载插件。',
+        undoWhen: '恢复记录',
+        undoNone: '没有可撤销的配置恢复。',
+        undoDone: '配置已撤销',
+        reverted: '已还原 %n 个文件。',
+        local: '本地备份文件',
+        localHint: '导入或导出配置 JSON，不必连接 GitHub。',
+        import: '选择备份文件',
+        export: '导出配置文件',
+        chooseAgain: '重新选择文件',
+        install: '单独补装插件',
+        installHint: '只核对本机 profile 声明的包，不读取云端或恢复配置。',
+        installConfirm: '安装已核对的 %n 个插件',
+        installOne: '安装已核对的 1 个插件',
+        installTrust: '仅安装你信任的来源。插件可能运行代码；本次操作不会批准新的构建脚本。',
+        allPresent: '本机清单中声明的包均已安装。',
+        installUnknown: '无法核实本机缺少哪些插件。请检查「插件」页。',
+        refreshInventory: '重新检查插件',
+        inventoryChanged: '本机清单已改变。请核对新的安装来源，再决定是否安装。',
+        target: '管理备份目标',
+        targetHint: '这里只管理以后上传的位置，不读取或修改云端。恢复时临时填写的来源不会保存为目标。',
+        targetNew: '下次备份的目标',
+        targetInput: '新的 Gist 链接或 ID',
+        targetEmpty: '留空则下次备份新建 Gist',
+        targetWarning: '保存后，下次备份将覆盖这个 Gist 中的备份文件。',
+        saveTarget: '保存备份目标',
+        targetSaved: '备份目标已保存。',
+        targetChanged: '本机备份目标或备份选项已改变。请先核对最新范围。',
+        diagnostics: '诊断与高级设置',
+        diagnosticsHint: '以下为本机记录，不代表已经检查云端。',
+        lastUpload: '最近一次上传',
+        lastSync: '最近一次云端恢复',
+        never: '暂无记录',
+        settingsFile: '本机设置文件',
+        profileRoot: 'profile 目录',
+        includeMachine: '备份和导出时包含本机用量统计（data/usage.json）',
+        machineSaved: '已更新备份范围。',
+        machineIncluded: '包含本机用量统计。',
+        machineExcluded: '不包含本机用量统计。',
+        localInventory: '本机文件清单',
+        defaultInventory: '基本备份范围（不含可选的用量统计）',
+        excluded: '默认排除',
+        limits: '大小上限：整份备份 / 单个 Gist 文件',
+        droppedDeps: '未上传的本机路径依赖',
+        repair: '修复 GitHub 访问',
+        tokenLabel: '仅供本次请求的 GitHub 令牌',
+        tokenHelp: '可以填写有 gist 权限的令牌；也可在启动环境中设置 DSH_GITHUB_TOKEN / GITHUB_TOKEN 后重启，或在本机执行 gh auth login。更新已有 Gist 还需对它有写权限。',
+        tokenPrivacy: '令牌不保存，发送一次后清空；恢复确认不会再次发送。',
+        authRetry: '留空重试会使用本机凭据。',
         'reason.no-plugin-manager': '未提供插件管理服务',
         'reason.plugin-manager-error': '读取插件清单失败',
-        pendingBuilds: '待批准构建脚本',
-        buildHint: '请到「插件」页核对脚本来源，需要时单独批准。',
-        retryHint: '处理报告中的事项后，可重新预览，检查是否还缺插件。',
-        uncertainResult: '未取得可核实的恢复结果。请先检查本机状态和撤销记录；若要重试，请重新预览。',
-        refreshFailed: '未能刷新本机状态，请重新打开此页。',
-        statusTitle: '备份状态',
-        recheck: '重新检查',
-        openCloud: '打开云端备份',
-        profileLabel: '本机 profile',
-        filesLabel: '配置文件',
-        lastUpload: '上次上传',
-        lastSync: '上次同步',
-        never: '还没有过',
-        needRestart: '这个插件刚更新过：重启 DSH 之后，上传和同步按钮才能用。',
-        hostMissing: '当前无法读取本机配置状态。',
-        retryStatus: '重新读取状态',
-        cloudNone: '尚未关联 Gist。要恢复旧机的配置，请在上方输入已有的 Gist；要备份本机，请选择「上传到云端」。',
-        cloudSame: '云端配置文件与本机一致。插件安装状态单独列出。',
-        cloudDiffers: '云端与本机配置不同：',
-        cloudDiffersFiles: '个文件',
-        cloudDiffersHint: '可在上方预览恢复，也可只同步配置。',
-        cloudUnreachable: '暂时读不到云端备份',
-        notChecked: '还没检查云端。',
-        checking: '正在检查云端…',
-        uploadTitle: '备份本机配置',
-        uploadHint: '上传到已关联的 Gist 会覆盖旧备份。只备份配置，不含插件本体或凭据库。secret Gist 不公开列出，但持有链接的人仍可读取。',
-        uploadTarget: '上传目标',
-        newGist: '新建 secret Gist',
-        uploadAction: '上传到云端',
-        exportAction: '另存为本地文件',
-        uploaded: '✓ 已上传',
-        droppedTitle: '没上传的本机依赖',
-        droppedHint: '它们是本机路径，传到别的电脑只会指向不存在的目录。那边同步时会保留原有的写法。',
-        filesUnit: '个文件',
-        countsOverwrite: '覆盖',
-        countsAdd: '新增',
-        countsIdentical: '不变',
-        countsMerge: '合并',
-        syncTitle: '仅同步配置与单独补装',
-        syncHint: '仅同步会立即按原版的完整文件恢复规则写入配置，不安装插件。上方组合恢复预览的跳过清单不适用：若备份含 .npmrc 等文件，本机对应文件会被写入或覆盖。本机独有的文件保留，插件清单取并集。',
-        syncAction: '仅同步配置',
-        synced: '✓ 已同步',
-        syncedSkipped: '，跳过',
-        syncedSkippedUnit: '项（凭据库等不写入）',
-        restartHint: '重启 DSH 后生效。',
-        undoAction: '撤销上次配置恢复',
-        undoAvailable: '可撤销：',
-        undone: '✓ 已还原',
-        advanced: '高级设置',
-        gistIdLabel: 'Gist ID 或链接',
-        gistIdPlaceholder: '粘贴备份的 Gist ID 或链接',
-        save: '记住上方 Gist ID',
-        saveHint: '保存上方的 Gist 作为上传目标；清空后再保存，下次上传会新建 Gist。',
-        saved: '✓ 已保存',
-        gistIdHint: '这些设置不会进入备份，记在这里：',
-        profileLocation: '本机 profile：',
-        tokenLabel: 'GitHub 令牌（一般不用填）',
-        tokenPlaceholder: '留空就用本机 gh 登录或环境变量',
-        tokenCheck: '检测令牌',
-        tokenHint: '令牌不会保存，只随需要访问 GitHub 的请求发送。确认安装时不会再次发送。',
-        tokenOk: '✓ 已核实账号：',
-        tokenUnverified: '已找到令牌，但未能核实 GitHub 账号：',
-        includeMachine: '备份时带上本机用量统计（data/usage.json）',
-        pickFile: '从备份文件恢复…',
-        pendingTitle: '待恢复的备份文件',
-        pendingPlan: '将写入',
-        importConfirm: '确认恢复',
-        cancel: '取消',
-        imported: '✓ 已恢复',
-        showFiles: '显示文件清单',
-        hideFiles: '收起文件清单',
-        excludedLabel: '已排除',
-        filesEmpty: '没有可备份的配置文件。',
-        excludedEmpty: '没有排除任何文件。',
-        limits: '上限：整份备份 2 MB，Gist 单文件 1 MB。',
-        busy: '处理中…',
+        'note.local-path': '本机路径，无法自动安装',
+        'note.workspace-protocol': 'workspace: 声明，无法在这台电脑解析',
+        'note.missing-source': '缺少可核实的安装来源',
+        'note.unsupported-source': '不支持自动安装此来源',
+        'note.invalid-name': '包名无效',
+        'note.stale-plan': '安装清单已改变，请重新预览',
         'code.dependency': '依赖目录',
         'code.lockfile': '锁文件',
         'code.hidden-dir': '隐藏目录',
@@ -142,1074 +183,1056 @@ window.__ModuleLoader__.load({
         'code.tool-state': '临时状态',
         'code.local-dependency': '本机路径依赖',
         'code.local-policy': '按本机策略保留，不覆盖',
-        'err.stale-plan': '此预览已失效或已使用。请重新预览，再确认最新清单。',
-        'err.busy': '另一项恢复或安装正在进行，请稍后重新预览。',
-        'err.bad-response': '未收到完整报告，无法核实操作结果。',
-        'err.auth': [
-          'GitHub 拒绝此请求。请核对令牌是否有效、是否具有 gist 权限；写入备份还需对该 Gist 有写权限。',
-          '',
-          '三种给令牌的方法，选一种：',
-          '1. 在本页「GitHub 令牌」填入本次请求的令牌，不会保存；',
-          '2. 在启动 DSH 的环境里设 DSH_GITHUB_TOKEN，然后重启 DSH；',
-          '3. 装过 GitHub CLI 的话执行 gh auth login，插件会自动取 gh auth token。',
-          '',
-          '令牌要勾上 gist 权限：GitHub → Settings → Developer settings →',
-          'Personal access tokens → Tokens (classic) → Generate new token。',
-          '勾好 gist 的直达链接：https://github.com/settings/tokens/new?scopes=gist&description=DSH%20config%20sync',
-        ].join('\n'),
-        'err.notfound': '找不到指定资源。请核对 Gist ID 或链接，并检查访问权限。',
-        'err.rate-limit': 'GitHub 限流或权限不足，请稍后再试。',
-        'err.invalid': '备份内容不合法，无法恢复。',
+        'err.bad-source': '请输入 Gist ID，或标准的 https://gist.github.com 备份链接（不要附加参数、片段或凭据）。',
+        'err.auth': 'GitHub 未授权本次访问。',
+        'err.rate-limit': 'GitHub 已限流，或当前凭据权限不足。可以稍后再试。',
+        'err.session-auth': 'DSH 拒绝了本次请求。请检查 DSH 登录状态和访问地址。',
+        'err.notfound': '未找到资源。请核对备份链接和访问权限；如果服务刚更新，请重启 DSH。',
+        'err.stale-plan': '预览已失效、被使用或本机状态已改变。请重新预览。',
+        'err.busy': '另一项恢复或安装正在进行。请稍后重新预览。',
+        'err.invalid': '备份或请求无效，请核对后重试。',
+        'err.invalidJson': '这不是有效的备份 JSON 文件。',
         'err.too-large': '备份超出大小上限。',
-        'err.timeout': '访问 GitHub 超时。',
-        'err.network': '连不上 GitHub。',
-        'err.no-profile': '这个 DSH 进程没有以 profile 启动，没有配置可备份。',
-        'err.no-cloud': '请先填入已有备份的 Gist ID 或链接。如果要备份本机，请另选「上传到云端」。',
-        'err.unsafe-path': '备份里有不安全的路径，已拒绝恢复。',
-        'err.nothing-to-undo': '没有可以撤销的同步。',
-        'err.invalidJson': '这不是合法的 JSON 文件。',
-        'err.other': '操作失败。',
-        'source.request': '本次填写',
-        'source.env': '环境变量',
-        'source.gh': 'gh CLI',
-        pluginsTitle: '插件',
-        pluginsHint: '备份不带插件本体。同步之后这里会列出还差的插件。',
-        pluginsChecking: '正在看还缺哪些插件…',
-        pluginsUnknown: '无法核实本机缺少哪些插件。',
-        pluginsUnknownHint: '请到「插件」页查看已安装的包，并核对备份清单。',
-        pluginsAllPresent: '✓ 清单里声明的插件，这台机器上都有。',
-        pluginsMissing: '还差',
-        pluginsMissingUnit: '个插件没装',
-        pluginUnresolvedUnit: '个本机装不了',
-        pluginsInstall: '安装缺的插件',
-        pluginsInstalling: '正在安装…',
-        pluginsInstalledCount: '已安装',
-        pluginsPresentCount: '本来就有',
-        pluginsFailedCount: '失败',
-        pluginsSkippedCount: '跳过',
-        pluginsRestart: '装完重启 DSH 才会生效。',
-        'note.local-path': '本机路径，无法自动安装',
-        'note.workspace-protocol': 'workspace: 声明，无法在新机上解析',
-        'note.missing-source': '未记录可核实的安装来源',
-        'note.unsupported-source': '此来源不支持自动安装',
-        'note.invalid-name': '包名无效',
-        'note.stale-plan': '安装清单已改变，请重新预览',
-        newMachineTitle: '在新机器上使用',
-        newMachineStep1: '从旧机复制备份的 Gist ID 或链接，填到此页上方。',
-        newMachineStep2: '使用具备 gist 权限的 GitHub 令牌，或使用本机已登录的 gh CLI。',
-        newMachineStep3: '选择「预览恢复」，核对变更和插件来源，再确认。',
-        newMachineStep4: '检查结果。手动处理不支持或失败的包；如需重启，请重启 DSH。',
+        'err.timeout': '请求超时。',
+        'err.network': '无法连接服务。',
+        'err.no-profile': 'DSH 未以 profile 启动，没有可读取的本机配置。',
+        'err.no-cloud': '尚未关联备份，请输入来源链接。',
+        'err.unsafe-path': '备份中含不安全的路径，已拒绝恢复。',
+        'err.nothing-to-undo': '没有可撤销的恢复记录。',
+        'err.bad-response': '服务没有返回可核实的完整数据。',
+        'err.other': '操作未能完成。',
       },
       en: {
         tab: 'Config sync Plus',
         title: 'Config sync Plus',
-        subtitle: 'Restore this machine from an existing Gist, or back up its configuration to a Gist.',
-        setupTitle: 'Set up this machine from a Gist',
-        setupHint: 'Enter the Gist ID or link from the other machine. No need to save it first. A preview reads the backup without writing files or installing packages.',
-        previewAction: 'Preview restore',
-        previewBusy: 'Reading the Gist and checking plugins…',
-        previewTitle: 'Restore preview',
-        previewSource: 'Source Gist',
-        previewTarget: 'Target profile',
-        previewChanges: 'Config file changes',
-        previewFiles: 'View files and exclusions',
-        previewInstall: 'Plugins to install',
-        previewSkip: 'Unsupported — will skip',
-        previewNone: 'No new plugin packages need downloading.',
-        alreadyEnable: 'Already installed — will be added to the enabled bundle list',
-        alreadyOther: 'Other already-installed packages',
-        specLabel: 'Source / install spec',
-        noSpec: 'No install source available to display',
-        snapshotHint: 'Confirmation uses only this previewed snapshot. Preview again if it expires or local state changes.',
-        trustHint: 'Confirm only if you trust this Gist and the listed package sources. Configuration and plugins can run code and affect every session in this profile. This does not approve new build scripts.',
-        undoLimit: 'Undo restores configuration files only. It does not uninstall packages.',
-        unavailablePlan: 'The packages to install could not be verified. If you cancel and choose “Sync config only”, the original full-file restore rules apply instead of this preview’s skip list. Files such as .npmrc will be written if present in the backup. Use this only if you trust the entire backup.',
-        confirmAction: 'Confirm restore and install plugins',
-        installBusy: 'Restoring configuration and installing plugins. Please do not repeat the request…',
-        restoreDone: 'Configuration and plugins restored as previewed',
-        restoreAttention: 'Restore needs attention',
-        configRestored: 'Configuration files restored',
-        warningsTitle: 'Warnings',
-        pluginResultTitle: 'Plugin installation results',
-        pluginResultUnknown: 'The full plugin installation result could not be verified.',
-        stillMissing: 'Packages still missing',
-        'reason.no-plugin-manager': 'plugin manager unavailable',
-        'reason.plugin-manager-error': 'plugin inventory could not be read',
-        pendingBuilds: 'Build scripts awaiting approval',
-        buildHint: 'Review these scripts on the Plugins page and approve them separately if needed.',
-        retryHint: 'After addressing the items in this report, preview again to check what is still missing.',
-        uncertainResult: 'No verifiable restore result was received. Check the local status and undo history before retrying with a new preview.',
-        refreshFailed: 'Local status could not be refreshed. Reopen this page to check it.',
-        statusTitle: 'Backup status',
-        recheck: 'Check again',
-        openCloud: 'Open the cloud copy',
-        profileLabel: 'Profile',
-        filesLabel: 'Config files',
-        lastUpload: 'Last upload',
-        lastSync: 'Last sync',
-        never: 'never',
-        needRestart: 'This plugin was just updated: restart DSH, then the upload and sync buttons will work.',
-        hostMissing: 'Local configuration status is unavailable.',
-        retryStatus: 'Retry local status',
-        cloudNone: 'No Gist is linked. To restore another machine’s backup, enter its Gist above. To back up this machine, choose “Upload to cloud”.',
-        cloudSame: 'The cloud configuration files match this machine. Plugin status is listed separately.',
-        cloudDiffers: 'Cloud and local configurations differ:',
-        cloudDiffersFiles: 'files differ from this machine',
-        cloudDiffersHint: 'Preview the restore above, or sync configuration only.',
-        cloudUnreachable: 'The cloud copy could not be read',
-        notChecked: 'The cloud has not been checked yet.',
-        checking: 'Checking the cloud…',
-        uploadTitle: 'Back up this machine',
-        uploadHint: 'Uploading to a linked Gist overwrites its previous backup. Configuration only — no plugin packages or credential stores. A secret Gist is unlisted; anyone with the link can read it.',
-        uploadTarget: 'Upload target',
-        newGist: 'Create a new secret Gist',
-        uploadAction: 'Upload to cloud',
-        exportAction: 'Save as a local file',
-        uploaded: '✓ Uploaded',
-        droppedTitle: 'machine-local dependencies left out',
-        droppedHint: 'They are paths on this machine; on another computer they would point at a directory that is not there. A sync there keeps whatever it already has.',
-        filesUnit: 'files',
-        countsOverwrite: 'overwrite',
-        countsAdd: 'add',
-        countsIdentical: 'unchanged',
-        countsMerge: 'merge',
-        syncTitle: 'Sync configuration or install plugins separately',
-        syncHint: 'Sync config only immediately restores files under the original full-file rules without installing packages. The combined preview’s skip list does not apply: files such as .npmrc are written or overwritten if present in the backup. Local-only files stay, and the plugin lists are merged.',
-        syncAction: 'Sync config only',
-        synced: '✓ Synced',
-        syncedSkipped: ', skipped',
-        syncedSkippedUnit: 'entries (a credential store is never written)',
-        restartHint: 'Restart DSH to apply.',
-        undoAction: 'Undo last config restore',
-        undoAvailable: 'Can be undone: ',
-        undone: '✓ Reverted',
-        advanced: 'Advanced',
-        gistIdLabel: 'Gist ID or link',
-        gistIdPlaceholder: 'Paste the Gist ID or link to your backup',
-        save: 'Remember Gist ID above',
-        saveHint: 'Save the Gist above as the upload target. Clear it and save to create a new Gist on the next upload.',
-        saved: '✓ Saved',
-        gistIdHint: 'These settings never enter a backup; they live at: ',
-        profileLocation: 'This machine\u2019s profile: ',
-        tokenLabel: 'GitHub token (usually unnecessary)',
-        tokenPlaceholder: 'Empty uses this machine’s gh login or environment',
-        tokenCheck: 'Check token',
-        tokenHint: 'The token is not saved. Only requests that access GitHub include it; confirming the installation does not.',
-        tokenOk: '✓ Account verified: ',
-        tokenUnverified: 'Token found; GitHub account could not be verified: ',
-        includeMachine: "Include this machine's usage counters (data/usage.json)",
-        pickFile: 'Restore from a backup file…',
-        pendingTitle: 'Backup file ready to restore',
-        pendingPlan: 'Will write',
-        importConfirm: 'Restore now',
+        intro: 'Move settings and plugins between computers.',
+        backup: 'Back up this machine',
+        restore: 'Restore from backup',
+        more: 'More',
+        back: 'Back to home',
         cancel: 'Cancel',
-        imported: '✓ Restored',
-        showFiles: 'Show file list',
-        hideFiles: 'Hide file list',
-        excludedLabel: 'Excluded',
-        filesEmpty: 'No configuration files to back up.',
-        excludedEmpty: 'Nothing was excluded.',
-        limits: 'Limits: 2 MB per backup, 1 MB per Gist file.',
+        next: 'View preview',
+        previewAgain: 'Preview again',
+        previewReceiptSource: 'Preview this source again',
+        noneYet: 'No backup yet',
+        linked: 'Backup destination linked',
+        ready: 'Backup ready',
+        copy: 'Copy backup link',
+        copied: 'Copied',
+        manualCopy: 'Automatic copy was unavailable. Select and copy the link below.',
+        link: 'Backup link',
+        openGist: 'Open Gist',
+        privacy: 'New backups are unlisted. Anyone with the link can read them. Configuration text is not redacted.',
+        overwriteHint: 'Backing up again overwrites the backup file at the linked destination.',
+        overwriteReview: 'Update the linked backup?',
+        visibilityKept: 'Updating a Gist does not change visibility. A public Gist stays public.',
+        uploadConfirm: 'Confirm backup update',
+        uploadRetry: 'Retry backup',
+        uploadScope: 'Uploads settings and the plugin manifest, not plugin packages or credential stores. Check text files for private information first.',
+        uploadTarget: 'Upload destination',
+        newGist: 'Create an unlisted Gist',
+        uploadUncertain: 'The upload result could not be verified. Check the local record and destination Gist before uploading again.',
+        refreshFailed: 'Local status could not be refreshed. Read it again; do not repeat the previous action.',
+        hostMissing: 'Local configuration status is unavailable.',
+        staleHost: 'The running host does not provide the required backup API. Restart DSH and try again.',
+        statusRetry: 'Read local status again',
+        localBusy: 'Reading local status…',
+        uploadBusy: 'Backing up this machine…',
+        previewBusy: 'Checking what this restore would change…',
+        applyBusy: 'Applying the reviewed restore. Do not repeat the request.',
+        pluginsBusy: 'Checking the local plugin manifest…',
+        installBusy: 'Installing the reviewed plugins…',
+        undoBusy: 'Undoing the configuration restore…',
         busy: 'Working…',
-        'code.dependency': 'dependency',
-        'code.lockfile': 'lockfile',
-        'code.hidden-dir': 'hidden dir',
-        'code.backup-copy': 'backup copy',
-        'code.symlink': 'symlink',
-        'code.machine-state': 'machine state',
-        'code.credential': 'credential store',
-        'code.binary': 'binary',
-        'code.too-large': 'too large',
-        'code.tool-state': 'tool state',
-        'code.local-dependency': 'machine-local dependency',
-        'code.local-policy': 'kept on this machine by local policy',
-        'err.stale-plan': 'This preview expired, changed, or has already been used. Preview again before confirming.',
-        'err.busy': 'Another restore or installation is in progress. Preview again when it finishes.',
-        'err.bad-response': 'The host returned an incomplete report. The result cannot be verified.',
-        'err.auth': [
-          'GitHub refused the request. Check the token and its gist scope. Uploads need write access to the Gist.',
-          '',
-          'Three ways to give it one, pick one:',
-          '1. enter a GitHub token on this page for the request; it is not saved;',
-          '2. set DSH_GITHUB_TOKEN in the environment DSH starts with, then restart DSH;',
-          '3. if the GitHub CLI is installed, run gh auth login — this plugin reads gh auth token.',
-          '',
-          'The token needs the gist scope: GitHub → Settings → Developer settings →',
-          'Personal access tokens → Tokens (classic) → Generate new token.',
-          'Direct link with gist pre-ticked: https://github.com/settings/tokens/new?scopes=gist&description=DSH%20config%20sync',
-        ].join('\n'),
-        'err.notfound': 'Resource not found. Check the Gist ID or link and your access to it.',
-        'err.rate-limit': 'GitHub rate-limited the request or the token lacks scope.',
-        'err.invalid': 'That backup is not valid, so it was not restored.',
-        'err.too-large': 'The backup is over the size limit.',
-        'err.timeout': 'The GitHub request timed out.',
-        'err.network': 'GitHub is unreachable.',
-        'err.no-profile': 'This DSH process was not started with a profile, so there is nothing to back up.',
-        'err.no-cloud': 'Enter the ID or link of your existing Gist. To back up this machine instead, choose “Upload to cloud”.',
-        'err.unsafe-path': 'The backup contains an unsafe path, so the restore was refused.',
-        'err.nothing-to-undo': 'There is no sync to undo.',
-        'err.invalidJson': 'That file is not valid JSON.',
-        'err.other': 'The operation failed.',
-        'source.request': 'entered here',
-        'source.env': 'environment variable',
-        'source.gh': 'gh CLI',
-        pluginsTitle: 'Plugins',
-        pluginsHint: 'A backup never carries plugin packages. After a sync, what is still missing is listed here.',
-        pluginsChecking: 'Checking which plugins are missing…',
-        pluginsUnknown: 'The missing plugins on this machine could not be verified.',
-        pluginsUnknownHint: 'Check the installed packages on the Plugins page against the backup manifest.',
-        pluginsAllPresent: '✓ Every plugin the manifest declares is on this machine.',
-        pluginsMissing: 'Missing:',
-        pluginsMissingUnit: 'plugins not installed',
-        pluginUnresolvedUnit: 'cannot be installed here',
-        pluginsInstall: 'Install the missing plugins',
-        pluginsInstalling: 'Installing…',
-        pluginsInstalledCount: 'installed',
-        pluginsPresentCount: 'already there',
-        pluginsFailedCount: 'failed',
-        pluginsSkippedCount: 'skipped',
-        pluginsRestart: 'Restart DSH after installing for them to take effect.',
-        'note.local-path': 'a local path — this machine cannot install it',
-        'note.workspace-protocol': 'a workspace: declaration — this machine cannot install it',
-        'note.missing-source': 'no verifiable install source was recorded',
-        'note.unsupported-source': 'this source is not supported for automatic installation',
-        'note.invalid-name': 'invalid package name',
-        'note.stale-plan': 'install list changed — preview again',
-        newMachineTitle: 'Using this on a new machine',
-        newMachineStep1: 'Copy the backup Gist ID or link from the other machine into the field above.',
-        newMachineStep2: 'Use a GitHub token with the gist scope or a signed-in local gh CLI.',
-        newMachineStep3: 'Choose “Preview restore”, check the changes and package sources, then confirm.',
-        newMachineStep4: 'Review the results. Resolve unsupported or failed packages manually and restart DSH if requested.',
+        sourceIntro: 'Paste the link from the other computer to see what would change here.',
+        newMachineStep1: 'A Gist ID also works. A preview does not write settings, install packages or change the upload destination.',
+        sourceLabel: 'Backup link or Gist ID',
+        sourcePlaceholder: 'Paste a gist.github.com backup link or ID',
+        changeSource: 'Use a different source',
+        source: 'Source',
+        targetProfile: 'Local profile',
+        previewTitle: 'Restore preview',
+        configMode: 'Restore configuration only',
+        configPreview: 'Configuration-only preview',
+        localPreview: 'Local file restore preview',
+        configScope: 'Restores configuration without installing plugins. Full-file rules apply: package-manager policies such as .npmrc in this backup can overwrite local settings.',
+        standardTrust: 'Trust both the backup and package sources before restoring. Changes affect every session in this profile. Review any requested build scripts separately.',
+        configTrust: 'Restore only if you trust the entire backup. Changes affect every session in this profile.',
+        configFiles: 'Configuration files',
+        changeFiles: 'Configuration files to change: %n',
+        fileCount: 'Files: %n',
+        add: 'Add',
+        overwrite: 'Overwrite',
+        merge: 'Merge',
+        identical: 'Unchanged',
+        retained: 'Retained or skipped',
+        showUnchanged: 'Unchanged files',
+        pluginsToInstall: 'Plugins to install: %n',
+        unresolved: 'Cannot install automatically — will skip',
+        noSpec: 'No verifiable source recorded',
+        installSource: 'Install source',
+        alreadyEnable: 'Already installed; will be added to the enabled list',
+        alreadyOther: 'Other already-installed packages',
+        cannotVerify: 'The plugin inventory could not be verified. Combined restore is unavailable.',
+        cannotVerifyHint: 'Check installed packages on the Plugins page. For configuration alone, use the separate, full-scope preview under More.',
+        noChanges: 'Already matches this backup',
+        filesSame: 'No configuration files need changing.',
+        filesPluginsSame: 'No configuration files need changing and no plugins need installing.',
+        noApplicable: 'There are no changes that can be applied automatically. Review the retained items or packages that need manual attention.',
+        confirmCombined: 'Restore and install %n plugins',
+        confirmOne: 'Restore and install 1 plugin',
+        confirmFiles: 'Confirm configuration restore',
+        confirmConfig: 'Restore configuration only',
+        noInstall: 'No plugins will be installed.',
+        reviewDone: 'Preview ready. No restore has been performed.',
+        restoreDone: 'Restore complete',
+        restoreUnverified: 'Last restore result not verified',
+        restoreAttention: 'Configuration restored; some items need attention',
+        changedCount: 'Configuration files changed: %n',
+        installedCount: 'Plugins installed: %n',
+        resultDetails: 'View results',
+        warnings: 'Warnings',
+        restart: 'Restart DSH for changes to take effect.',
+        uncertain: 'The result could not be verified. Some changes may already have been applied. Check local status and undo history, then preview again.',
+        pluginUnknown: 'The complete plugin installation result could not be verified.',
+        pluginResults: 'Plugin installation results',
+        stillMissing: 'Packages still missing',
+        installed: 'Installed',
+        present: 'Already present',
+        failed: 'Failed',
+        skipped: 'Skipped',
+        pendingBuilds: 'Build scripts awaiting separate approval',
+        buildHint: 'Review the script sources on the Plugins page and approve separately if appropriate. This page never approves builds.',
+        retryHint: 'After addressing these items, preview again to check what is still missing.',
+        undo: 'Undo last configuration restore',
+        undoConfirm: 'Confirm undo',
+        undoScope: 'Return files to their state before this restore, removing files it added. Later edits to those files may be lost.',
+        undoLimit: 'Undo restores configuration only. It does not uninstall plugins.',
+        undoWhen: 'Restore record',
+        undoNone: 'There is no configuration restore to undo.',
+        undoDone: 'Configuration restore undone',
+        reverted: 'Files reverted: %n.',
+        local: 'Local backup file',
+        localHint: 'Import or export a configuration JSON file without connecting to GitHub.',
+        import: 'Choose a backup file',
+        export: 'Export configuration file',
+        chooseAgain: 'Choose the file again',
+        install: 'Install missing plugins separately',
+        installHint: 'Check packages declared in this local profile, without reading the cloud or restoring configuration.',
+        installConfirm: 'Install %n reviewed plugins',
+        installOne: 'Install 1 reviewed plugin',
+        installTrust: 'Install only sources you trust. Plugins can run code; this action does not approve new build scripts.',
+        allPresent: 'Every package declared in this profile is already installed.',
+        installUnknown: 'Missing local plugins could not be verified. Check the Plugins page.',
+        refreshInventory: 'Check plugins again',
+        inventoryChanged: 'The local manifest changed. Review the new sources before installing.',
+        target: 'Manage backup destination',
+        targetHint: 'Choose where future uploads go. This does not read or change the cloud. A temporary restore source is not saved as a destination.',
+        targetNew: 'Next backup destination',
+        targetInput: 'New Gist link or ID',
+        targetEmpty: 'Leave empty to create a Gist on the next backup',
+        targetWarning: 'After saving, the next backup overwrites the backup file in this Gist.',
+        saveTarget: 'Save backup destination',
+        targetSaved: 'Backup destination saved.',
+        targetChanged: 'The local backup destination or options changed. Review the current scope first.',
+        diagnostics: 'Diagnostics and settings',
+        diagnosticsHint: 'These are local records, not a live check of the cloud.',
+        lastUpload: 'Most recent upload',
+        lastSync: 'Most recent cloud restore',
+        never: 'No record',
+        settingsFile: 'Local settings file',
+        profileRoot: 'Profile directory',
+        includeMachine: 'Include this machine’s usage counters (data/usage.json) in backups and exports',
+        machineSaved: 'Backup scope updated.',
+        machineIncluded: 'Includes this machine’s usage counters.',
+        machineExcluded: 'Excludes this machine’s usage counters.',
+        localInventory: 'Local file list',
+        defaultInventory: 'Base backup scope (without optional usage counters)',
+        excluded: 'Excluded by default',
+        limits: 'Size limits: whole backup / Gist file',
+        droppedDeps: 'Machine-local dependencies left out of the upload',
+        repair: 'Restore GitHub access',
+        tokenLabel: 'GitHub token for this request only',
+        tokenHelp: 'Enter a token with Gist access below, set DSH_GITHUB_TOKEN / GITHUB_TOKEN in the startup environment and restart DSH, or run gh auth login on this machine. Updating an existing Gist requires write access to it.',
+        tokenPrivacy: 'The token is not saved and is cleared after one request. Restore confirmation never sends it again.',
+        authRetry: 'Leave empty to retry with local credentials.',
+        'reason.no-plugin-manager': 'Plugin manager unavailable',
+        'reason.plugin-manager-error': 'Plugin inventory could not be read',
+        'note.local-path': 'A local path cannot be installed on this machine',
+        'note.workspace-protocol': 'A workspace: reference cannot be resolved here',
+        'note.missing-source': 'No verifiable installation source',
+        'note.unsupported-source': 'This source does not support automatic installation',
+        'note.invalid-name': 'Invalid package name',
+        'note.stale-plan': 'The install list changed; preview again',
+        'code.dependency': 'Dependencies',
+        'code.lockfile': 'Lockfile',
+        'code.hidden-dir': 'Hidden directory',
+        'code.backup-copy': 'Backup copy',
+        'code.symlink': 'Symbolic link',
+        'code.machine-state': 'Machine usage',
+        'code.credential': 'Credential store',
+        'code.binary': 'Binary',
+        'code.too-large': 'File too large',
+        'code.tool-state': 'Temporary state',
+        'code.local-dependency': 'Machine-local dependency',
+        'code.local-policy': 'Retained by local policy; not overwritten',
+        'err.bad-source': 'Enter a Gist ID or a standard https://gist.github.com backup link without credentials, query or fragment.',
+        'err.auth': 'GitHub did not authorize this request.',
+        'err.rate-limit': 'GitHub rate-limited this request, or the credential lacks permission. You can retry later.',
+        'err.session-auth': 'DSH refused the request. Check the DSH sign-in and address.',
+        'err.notfound': 'Resource not found. Check the link and access. If the host was just updated, restart DSH.',
+        'err.stale-plan': 'This preview expired, was used, or the local state changed. Preview again.',
+        'err.busy': 'Another restore or installation is running. Preview again when it finishes.',
+        'err.invalid': 'The backup or request is not valid. Check it before retrying.',
+        'err.invalidJson': 'This file is not valid backup JSON.',
+        'err.too-large': 'The backup exceeds the size limit.',
+        'err.timeout': 'The request timed out.',
+        'err.network': 'The service is unreachable.',
+        'err.no-profile': 'DSH was not started with a profile. No local configuration is available.',
+        'err.no-cloud': 'No backup is linked. Enter a source link first.',
+        'err.unsafe-path': 'An unsafe path in the backup prevented restoration.',
+        'err.nothing-to-undo': 'There is no restore record to undo.',
+        'err.bad-response': 'The service did not return complete, verifiable data.',
+        'err.other': 'The operation could not be completed.',
       },
     }
 
     const CSS = `
-.dpgsp-root { display:flex; flex-direction:column; gap:14px; padding:2px 2px 28px; color:var(--dsw-alias-label-primary); font-size:13px; line-height:1.6; }
-.dpgsp-head h2 { margin:0 0 2px; font-size:15px; font-weight:600; }
-.dpgsp-head p { margin:0; color:var(--dsw-alias-label-secondary); font-size:12.5px; }
-.dpgsp-card { border:1px solid var(--dsw-alias-border-l1); border-radius:12px; background:var(--dsw-alias-bg-layer-1); padding:14px 16px; display:flex; flex-direction:column; gap:10px; }
-.dpgsp-cardtitle { font-size:13.5px; font-weight:600; }
-.dpgsp-hint { color:var(--dsw-alias-label-secondary); font-size:12.5px; }
-.dpgsp-verdict { border-radius:10px; padding:9px 12px; border:1px solid var(--dsw-alias-border-l2); font-size:13px; }
-.dpgsp-ok { border-color:var(--dsw-alias-state-success-primary); color:var(--dsw-alias-label-primary); }
-.dpgsp-warn { border-color:var(--dsw-alias-state-warn-primary); color:var(--dsw-alias-label-primary); }
-.dpgsp-muted { color:var(--dsw-alias-label-secondary); }
-.dpgsp-facts { display:flex; flex-direction:column; gap:2px; }
-.dpgsp-row { display:flex; gap:10px; font-size:12.5px; }
-.dpgsp-row .dpgsp-key { flex:0 0 96px; color:var(--dsw-alias-label-secondary); }
-.dpgsp-row .dpgsp-val { min-width:0; word-break:break-all; }
-.dpgsp-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-.dpgsp-btn { appearance:none; border:1px solid var(--dsw-alias-border-l2); background:var(--dsw-alias-bg-layer-2); color:var(--dsw-alias-label-primary); border-radius:8px; padding:7px 14px; font-size:12.5px; font-family:inherit; cursor:pointer; text-decoration:none; }
-.dpgsp-btn:hover:not(:disabled) { border-color:var(--dsw-alias-brand-primary); }
-.dpgsp-btn:disabled { opacity:.55; cursor:default; }
-.dpgsp-btn-primary { background:var(--dsw-alias-button-primary-fill); border-color:var(--dsw-alias-button-primary-fill); color:var(--dsw-alias-label-primary-foreground); }
-.dpgsp-btn-link { border-color:transparent; background:transparent; padding:2px 4px; color:var(--dsw-alias-brand-primary); }
-.dpgsp-field { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-.dpgsp-field .dpgsp-key { flex:0 0 150px; color:var(--dsw-alias-label-secondary); font-size:12.5px; }
-.dpgsp-input { flex:1 1 260px; min-width:0; border:1px solid var(--dsw-alias-border-l1); border-radius:8px; background:var(--dsw-alias-bg-base); color:var(--dsw-alias-label-primary); padding:6px 10px; font-size:12.5px; font-family:inherit; }
-.dpgsp-input:focus { outline:none; border-color:var(--dsw-alias-brand-primary); }
-.dpgsp-check { display:flex; align-items:center; gap:8px; color:var(--dsw-alias-label-secondary); font-size:12.5px; cursor:pointer; }
-.dpgsp-notice { border-radius:10px; padding:9px 12px; border:1px solid var(--dsw-alias-border-l2); font-size:12.5px; white-space:pre-wrap; word-break:break-word; }
-.dpgsp-notice-ok { border-color:var(--dsw-alias-state-success-primary); }
-.dpgsp-notice-warn { border-color:var(--dsw-alias-state-warn-primary); }
-.dpgsp-notice-error { border-color:var(--dsw-alias-state-error-primary); color:var(--dsw-alias-label-primary); }
-.dpgsp-link { color:var(--dsw-alias-brand-primary); text-decoration:none; word-break:break-all; font-size:12.5px; }
-.dpgsp-details { border-top:1px dashed var(--dsw-alias-border-l1); padding-top:10px; }
-.dpgsp-details summary { cursor:pointer; color:var(--dsw-alias-label-secondary); font-size:12.5px; }
-.dpgsp-advbody { display:flex; flex-direction:column; gap:12px; padding-top:12px; }
-.dpgsp-list { margin:0; padding:0; list-style:none; max-height:200px; overflow:auto; border-top:1px dashed var(--dsw-alias-border-l1); }
-.dpgsp-list li { display:flex; gap:10px; justify-content:space-between; padding:2px 0; border-bottom:1px dashed var(--dsw-alias-border-l1); font-size:12px; }
-.dpgsp-path { font-family:inherit; word-break:break-all; }
-.dpgsp-dim { color:var(--dsw-alias-label-secondary); flex:0 0 auto; }
-.dpgsp-sub { display:flex; flex-direction:column; gap:6px; padding-top:8px; border-top:1px dashed var(--dsw-alias-border-l1); }
-.dpgsp-subtitle { font-size:12.5px; font-weight:600; }
-.dpgsp-steps { margin:0; padding-left:18px; display:flex; flex-direction:column; gap:4px; color:var(--dsw-alias-label-secondary); font-size:12.5px; }
-.dpgsp-busy { color:var(--dsw-alias-label-secondary); }
-.dpgsp-setup { border-color:var(--dsw-alias-brand-primary); }
-.dpgsp-card h3, .dpgsp-card h4 { margin:0; }
-.dpgsp-note-list { margin:0; padding-left:20px; overflow-wrap:anywhere; }
-.dpgsp-package { display:flex; flex-direction:column; gap:2px; min-width:0; overflow-wrap:anywhere; white-space:pre-wrap; }
-.dpgsp-package code { font-family:monospace; unicode-bidi:isolate; }
-.dpgsp-root { min-width:0; overflow-wrap:anywhere; }
-@media (max-width:550px) { .dpgsp-field .dpgsp-key { flex-basis:100%; } }
+.dpgsp-root { --ink:var(--dsw-alias-label-primary); --muted:var(--dsw-alias-label-secondary); --paper:var(--dsw-alias-bg-layer-1); --soft:var(--dsw-alias-bg-layer-2); --line:var(--dsw-alias-border-l1); --edge:var(--dsw-alias-border-l2); --brand:var(--dsw-alias-brand-primary); --good:var(--dsw-alias-state-success-primary); --warn:var(--dsw-alias-state-warn-primary); --error:var(--dsw-alias-state-error-primary); container-type:inline-size; max-width:820px; min-width:0; color:var(--ink); font:inherit; font-size:14px; line-height:1.55; overflow-wrap:anywhere; }
+.dpgsp-root *, .dpgsp-root *::before { box-sizing:border-box; }
+.dpgsp-panel { background:var(--paper); border:1px solid var(--line); border-radius:16px; }
+.dpgsp-body { padding:clamp(18px,4cqi,34px); }
+.dpgsp-root :is(h2,h3,h4,p,ul,dl,dd) { margin:0; }
+.dpgsp-root h2 { font-size:clamp(20px,3.4cqi,27px); letter-spacing:-.025em; line-height:1.24; font-weight:650; }
+.dpgsp-root h3 { font-size:16px; line-height:1.4; font-weight:620; }
+.dpgsp-root h4 { font-size:14px; line-height:1.4; font-weight:600; }
+.dpgsp-root .dpgsp-intro { margin-top:5px; color:var(--muted); font-size:14px; }
+.dpgsp-header, .dpgsp-titleline, .dpgsp-actions, .dpgsp-status, .dpgsp-ready, .dpgsp-source, .dpgsp-foot, .dpgsp-row, .dpgsp-line, .dpgsp-check { display:flex; align-items:center; }
+.dpgsp-header { gap:13px; align-items:flex-start; }
+.dpgsp-titleline { align-items:center; gap:14px; flex:1; min-width:0; }
+.dpgsp-mark { display:grid; place-items:center; flex:none; width:47px; height:47px; border:1px solid var(--line); border-radius:13px; background:var(--soft); background:color-mix(in srgb,var(--brand) 9%,var(--paper)); color:var(--brand); }
+.dpgsp-icon { display:inline-block; flex:none; vertical-align:middle; }
+.dpgsp-stack, .dpgsp-group, .dpgsp-iteminfo { display:grid; gap:10px; min-width:0; }
+.dpgsp-stack { gap:18px; }
+.dpgsp-group { gap:8px; }
+.dpgsp-section { padding-top:22px; margin-top:23px; border-top:1px solid var(--line); }
+.dpgsp-actions { flex-wrap:wrap; gap:9px; }
+.dpgsp-btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; max-width:100%; min-height:39px; padding:8px 15px; border:1px solid var(--edge); border-radius:8px; background:var(--paper); color:var(--ink); cursor:pointer; touch-action:manipulation; font:inherit; font-size:13px; font-weight:550; text-align:center; line-height:1.42; text-decoration:none; }
+.dpgsp-btn:hover:not(:disabled) { background:var(--soft); border-color:var(--muted); }
+.dpgsp-btn.dpgsp-primary { color:var(--paper); background:var(--ink); border-color:var(--ink); }
+.dpgsp-btn.dpgsp-primary:hover:not(:disabled) { background:color-mix(in srgb,var(--ink) 88%,var(--paper)); border-color:var(--ink); }
+.dpgsp-btn.dpgsp-quiet { background:transparent; border-color:transparent; color:var(--muted); padding:5px 7px; min-height:30px; font-weight:500; }
+.dpgsp-btn.dpgsp-quiet:hover:not(:disabled) { color:var(--ink); background:var(--soft); border-color:transparent; }
+.dpgsp-root :is(button,input):disabled { opacity:.55; cursor:not-allowed; }
+.dpgsp-root :is(button,input,summary,a):focus-visible { outline:2px solid var(--brand); outline-offset:3px; }
+.dpgsp-root :is(h2,h3)[tabindex]:focus { outline:none; }
+.dpgsp-menuwrap { position:relative; flex:none; }
+.dpgsp-menulist { position:absolute; z-index:2; top:calc(100% + 4px); inset-inline-end:0; width:min(260px,75cqi); display:grid; background:var(--dsw-alias-bg-overlay,var(--paper)); border:1px solid var(--edge); border-radius:10px; padding:5px; box-shadow:0 5px 18px var(--line); }
+.dpgsp-menulist .dpgsp-btn { justify-content:flex-start; text-align:start; color:var(--ink); padding:8px 10px; }
+.dpgsp-status { width:fit-content; max-width:100%; gap:8px; background:var(--soft); color:var(--muted); border:1px solid var(--line); border-radius:99px; padding:4px 11px; font-size:12px; font-weight:550; }
+.dpgsp-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--dsw-alias-state-idle-primary); }
+.dpgsp-ready, .dpgsp-box { border:1px solid var(--line); border-radius:9px; padding:12px 14px; }
+.dpgsp-ready { flex-wrap:wrap; justify-content:space-between; gap:8px 12px; background:var(--soft); background:color-mix(in srgb,var(--good) 8%,var(--paper)); border-color:color-mix(in srgb,var(--good) 30%,var(--line)); }
+.dpgsp-ready .dpgsp-icon, .dpgsp-success > .dpgsp-line > .dpgsp-icon { color:var(--good); }
+.dpgsp-ready h3 { color:var(--good); }
+.dpgsp-ready .dpgsp-btn { min-height:30px; padding:4px 10px; font-size:12px; }
+.dpgsp-box { display:grid; gap:7px; background:var(--soft); }
+.dpgsp-warning { border-inline-start:3px solid var(--warn); }
+.dpgsp-alert { border-inline-start:3px solid var(--error); }
+.dpgsp-success { border-inline-start:3px solid var(--good); }
+.dpgsp-line, .dpgsp-check { gap:8px; flex-wrap:wrap; }
+.dpgsp-hint, .dpgsp-note, .dpgsp-source, .dpgsp-meta { color:var(--muted); font-size:12.5px; }
+.dpgsp-note { display:flex; align-items:flex-start; gap:7px; }
+.dpgsp-note > svg { margin-top:.16em; }
+.dpgsp-source { gap:6px 9px; flex-wrap:wrap; }
+.dpgsp-source strong { color:var(--ink); font-weight:550; }
+.dpgsp-list { padding:0; list-style:none; border:1px solid var(--line); border-radius:9px; }
+.dpgsp-row { gap:10px; padding:9px 12px; min-width:0; }
+.dpgsp-row + .dpgsp-row { border-top:1px solid var(--line); }
+.dpgsp-row > .dpgsp-icon { color:var(--muted); }
+.dpgsp-row .dpgsp-iteminfo { flex:1; gap:2px; }
+.dpgsp-root code { font: .94em/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; overflow-wrap:anywhere; white-space:pre-wrap; unicode-bidi:isolate; }
+.dpgsp-tag { flex:none; font-size:11.5px; color:var(--muted); background:var(--soft); border-radius:5px; padding:2px 7px; }
+.dpgsp-details > summary { width:fit-content; max-width:100%; cursor:pointer; color:var(--muted); font-size:13px; padding:3px 0; }
+.dpgsp-details > :not(summary) { margin-top:8px; }
+.dpgsp-foot { background:var(--soft); border-top:1px solid var(--line); border-radius:0 0 16px 16px; padding:14px clamp(18px,4cqi,34px); flex-wrap:wrap; justify-content:flex-end; gap:12px 18px; }
+.dpgsp-foot > .dpgsp-note { flex:1 1 190px; }
+.dpgsp-foot .dpgsp-actions { justify-content:flex-end; }
+.dpgsp-field { display:grid; gap:6px; min-width:0; }
+.dpgsp-field label { font-weight:550; font-size:13px; }
+.dpgsp-input { width:100%; max-width:100%; min-width:0; border:1px solid var(--edge); border-radius:8px; padding:9px 11px; color:var(--ink); background:var(--dsw-alias-bg-base); font:inherit; font-size:14px; }
+.dpgsp-input[aria-invalid=true] { border-color:var(--error); }
+.dpgsp-check { flex-wrap:nowrap; align-items:baseline; cursor:pointer; }
+.dpgsp-check input { accent-color:var(--brand); }
+.dpgsp-facts { display:grid; gap:5px; }
+.dpgsp-facts > div { display:grid; grid-template-columns:minmax(75px, .45fr) 1fr; gap:10px; align-items:baseline; }
+.dpgsp-facts dt { color:var(--muted); font-size:12.5px; }
+.dpgsp-facts dd { min-width:0; }
+.dpgsp-root .dpgsp-link { color:var(--brand); text-underline-offset:2px; }
+.dpgsp-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+@container (max-width:500px) { .dpgsp-body { padding:19px 15px; } .dpgsp-titleline { gap:10px; } .dpgsp-mark { width:39px; height:39px; border-radius:10px; } .dpgsp-header { gap:4px; } .dpgsp-section { padding-top:16px; margin-top:19px; } .dpgsp-foot { padding:12px 15px; } .dpgsp-foot > .dpgsp-note { flex-basis:100%; } .dpgsp-row { padding:8px 9px; } }
+@container (max-width:330px) { .dpgsp-homeactions > .dpgsp-btn { width:100%; } .dpgsp-facts > div { grid-template-columns:1fr; gap:0; } .dpgsp-foot .dpgsp-actions { width:100%; } }
 `
 
-    /** One Host route call; a failed answer becomes an error with its code. */
-    async function api(path, init) {
-      const response = await fetch(`${API}${path}`, {
-        credentials: 'same-origin',
-        ...init,
-        headers: init?.body === undefined ? init?.headers : { 'content-type': 'application/json', ...init?.headers },
-        body: init?.body === undefined ? undefined : JSON.stringify(init.body),
-      })
-      let payload = null
-      try {
-        payload = await response.json()
-      } catch {
-        payload = null
-      }
-      if (!response.ok) {
-        const error = new Error(payload?.error ?? `HTTP ${response.status}`)
-        error.code = payload?.code ?? 'other'
-        throw error
-      }
-      if (payload === null || typeof payload !== 'object') throw badResponse()
-      return payload
+    const PATHS = {
+      sync: 'M3 8h16m-5-5 5 5-5 5M21 16H5m5 5-5-5 5-5',
+      up: 'M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5', down: 'M12 3v13m-5-5 5 5 5-5M4 15v5h16v-5',
+      chevron: 'm7 10 5 5 5-5', arrow: 'M4 12h15m-6-6 6 6-6 6',
+      file: 'M6 3h7l5 5v13H6zM13 3v6h5M9 13h6m-6 4h4',
+      pkg: 'm12 3 8 4.5v9L12 21l-8-4.5v-9L12 3zM4 7.5l8 4.5 8-4.5M12 12v9M8 5.3l8 4.5',
+      pc: 'M3 4h18v13H3zM8 21h8m-4-4v4', shield: 'm12 3 8 3v5c0 5-4 8-8 10-4-2-8-5-8-10V6zm0 5v5m0 3v.1',
+      info: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM12 10.5v6m0-9v.2',
+      check: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM7.8 12.2l2.6 2.8 5.9-6.2',
+      copy: 'M8 8h12v13H8zM16 8V3H4v13h4',
     }
+    const icon = (key, size = 17) => h('svg', { className: 'dpgsp-icon', width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.65, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true, focusable: false }, h('path', { d: PATHS[key] }))
+    const txt = value => typeof value === 'string' && value.trim() !== ''
+    const number = value => Number.isSafeInteger(value) && value >= 0
+    const names = items => Array.isArray(items) && items.every(item => typeof item === 'string')
+    const countText = (t, key, n) => t(key).replace('%n', String(n))
+    const fail = code => Object.assign(new Error(code), { code })
+    const rowFile = file => txt(file?.path) && number(file.bytes)
+    const excludedFile = file => txt(file?.path) && txt(file.code)
+    const FILE_STATES = ['add', 'overwrite', 'merge', 'identical']
+    const OUTCOMES = { installed: 'installed', 'already-present': 'present', failed: 'failed', skipped: 'skipped' }
 
-    function badResponse() {
-      return Object.assign(new Error(''), { code: 'bad-response' })
+    // Accept the host's bare ID alphabet, or an exact canonical HTTPS Gist path.
+    // Never copy/open a raw URL supplied by the network, even on a success receipt.
+    const bareId = id => typeof id === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(id)
+    function sourceId(raw) {
+      const s = typeof raw === 'string' ? raw.trim() : ''
+      if (bareId(s)) return s
+      return /^https:\/\/gist\.github\.com\/(?:[a-z\d][a-z\d-]{0,38}\/)?([a-z\d_-]{1,64})\/?$/i.exec(s)?.[1] ?? null
     }
-
-    function hasCounts(counts) {
-      return ['add', 'overwrite', 'merge', 'identical'].every(key => Number.isSafeInteger(counts?.[key]) && counts[key] >= 0)
+    function gistLink(ref) {
+      if (!bareId(ref?.id)) return null
+      if (typeof ref.htmlUrl === 'string' && sourceId(ref.htmlUrl) === ref.id && /^https:\/\//i.test(ref.htmlUrl)) return ref.htmlUrl.trim()
+      return `https://gist.github.com/${ref.id}`
     }
-
-    function hasCandidateList(inventory) {
-      return inventory?.available === true && Array.isArray(inventory.missing) && inventory.missing.every(entry =>
-        typeof entry?.name === 'string' && typeof entry.resolvable === 'boolean'
-        && (entry.spec == null || typeof entry.spec === 'string')
-        && (entry.resolvable ? typeof entry.installSpec === 'string' && entry.installSpec.trim() !== '' : entry.installSpec === null),
-      )
-    }
-
-    const FILE_STATUSES = { add: 'countsAdd', overwrite: 'countsOverwrite', merge: 'countsMerge', identical: 'countsIdentical' }
-    function hasFilePlan(preview) {
-      return hasCounts(preview?.counts) && Array.isArray(preview.files) && Array.isArray(preview.dropped)
-        && preview.files.every(file => typeof file?.path === 'string' && Object.hasOwn(FILE_STATUSES, file.status))
-        && preview.dropped.every(file => typeof file?.path === 'string' && typeof file.code === 'string')
-    }
-
-    /** Accept a read-only explanation without a plan ID, but not a blind confirmation. */
-    function validPreview(plan) {
-      return typeof plan?.ref?.id === 'string' && plan.ref.id !== '' && typeof plan.preview?.profile === 'string'
-        && hasFilePlan(plan.preview) && (plan.plugins?.available === false && plan.planId === null
-          || hasCandidateList(plan.plugins) && typeof plan.planId === 'string' && plan.planId.trim() !== '')
-    }
-
-    function configSummary(counts, t) {
-      return `${t('countsAdd')} ${counts.add} · ${t('countsOverwrite')} ${counts.overwrite} · ${t('countsMerge')} ${counts.merge} · ${t('countsIdentical')} ${counts.identical}`
-    }
-
-    /** Human-readable size. */
-    function formatBytes(bytes) {
-      if (!Number.isFinite(bytes)) return '—'
-      if (bytes < 1024) return `${bytes} B`
-      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-      return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
-    }
-
-    /** Absolute time, in the reader's own locale. */
     function formatTime(value) {
-      if (typeof value !== 'string' || value === '') return '—'
+      if (!txt(value)) return '—'
       const date = new Date(value)
-      return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
+      return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString()
+    }
+    function formatBytes(n) {
+      return !number(n) ? '—' : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KiB` : `${(n / 1048576).toFixed(1)} MiB`
+    }
+    function codeText(t, group, code) {
+      const key = `${group}.${code}`
+      return Object.hasOwn(DICT.en, key) ? t(key) : typeof code === 'string' ? code : ''
+    }
+    const errorText = (t, error) => Object.hasOwn(DICT.en, `err.${error?.code}`) ? t(`err.${error.code}`) : t('err.other')
+    async function api(path, body, signal) {
+      let response
+      try {
+        response = await fetch(`${API}${path}`, { method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin', redirect: 'error', cache: 'no-store', signal,
+          ...(body === undefined ? {} : { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }) })
+      } catch (error) { throw signal?.aborted ? error : fail('network') }
+      const data = await response.json().catch(() => null)
+      if (!response.ok) {
+        // An origin/login rejection from DSH is not a reason to ask for a GitHub token.
+        const localDenial = data?.code === 'auth' && /^(?:DSH refused|refused: the Host)/i.test(data?.error ?? '')
+        throw fail(localDenial ? 'session-auth' : data?.code ?? 'other')
+      }
+      if (!data || typeof data !== 'object' || Array.isArray(data)) throw fail('bad-response')
+      return data
+    }
+    function validStatus(s) {
+      return txt(s?.profile) && number(s.counts?.files) && number(s.counts.bytes)
+        && Array.isArray(s.files) && s.files.every(rowFile) && Array.isArray(s.excluded) && s.excluded.every(excludedFile)
+        && (s.cloud == null || ((s.cloud.gistId === null || typeof s.cloud.gistId === 'string') && typeof s.cloud.includeMachine === 'boolean'))
+        && (s.undo == null || (txt(s.undo.stamp) && number(s.undo.files)))
+    }
+    function filePlan(p) {
+      if (!txt(p?.profile) || !Array.isArray(p.files) || !Array.isArray(p.dropped) || !p.dropped.every(excludedFile)) return false
+      const totals = { add: 0, overwrite: 0, merge: 0, identical: 0 }
+      for (const f of p.files) {
+        if (!txt(f?.path) || !Object.hasOwn(totals, f.status)) return false
+        totals[f.status]++
+      }
+      return FILE_STATES.every(key => totals[key] === p.counts?.[key])
+        && (p.manifest == null || names(p.manifest.bundlesAdded))
+    }
+    const changes = p => p.counts.add + p.counts.overwrite + p.counts.merge
+    const skippedCount = p => Math.max(p.dropped.length, number(p.droppedEntries) ? p.droppedEntries : 0)
+    const verifiedInventory = p => p?.available === true && names(p.installed) && Array.isArray(p.missing) && p.missing.every(entry =>
+      txt(entry?.name) && typeof entry.resolvable === 'boolean' && (entry.spec == null || typeof entry.spec === 'string')
+      && (entry.resolvable ? txt(entry.installSpec) : entry.installSpec === null))
+    const installable = p => verifiedInventory(p) ? p.missing.filter(row => row.resolvable) : []
+    const inventoryShape = p => p?.available === false || verifiedInventory(p)
+    function validCloudPlan(p, mode, id) {
+      if (!bareId(p?.ref?.id) || p.ref.id !== id || !filePlan(p.preview)) return false
+      if (mode === 'config') return txt(p.planId) && p.plugins == null
+      return p.plugins?.available === false ? p.planId === null : verifiedInventory(p.plugins) && txt(p.planId)
+    }
+    function actionable(p) {
+      return !!p && (p.mode !== 'standard' || verifiedInventory(p.plugins)) && (changes(p.preview) > 0 || installable(p.plugins).length > 0)
+    }
+    function validRestore(r, plan) {
+      if (!filePlan(r?.report) || !number(r.report.restored)) return false
+      if (plan.mode === 'local') return true
+      if (r.ref?.id !== plan.ref.id || typeof r.restart !== 'boolean' || !names(r.warnings ?? [])) return false
+      return plan.mode === 'config' || (typeof r.complete === 'boolean' && typeof r.plugins?.available === 'boolean')
+    }
+    function verifiedReport(p) {
+      return verifiedInventory(p) && Array.isArray(p.results) && p.results.every(row => txt(row?.name) && Object.hasOwn(OUTCOMES, row.outcome) && names(row.pendingBuilds))
+        && Object.keys(OUTCOMES).every(key => number(p.outcomeCounts?.[key]) && p.outcomeCounts[key] === p.results.filter(row => row.outcome === key).length)
+    }
+    const pendingBuilds = p => [...new Set((Array.isArray(p?.results) ? p.results : []).flatMap(row => names(row?.pendingBuilds) ? row.pendingBuilds : []))]
+    const incomplete = p => !verifiedReport(p) || p.missing.length > 0 || p.outcomeCounts.failed > 0 || p.outcomeCounts.skipped > 0 || pendingBuilds(p).length > 0
+    function sourceKind(entry, t) {
+      const full = entry.installSpec
+      const prefixed = full.startsWith(`${entry.name}@`)
+      const spec = prefixed ? full.slice(entry.name.length + 1) : full
+      if (/^(?:git(?:\+|:|@)|ssh:|github:|gitlab:|bitbucket:)/i.test(spec) || /\.git(?:$|#)/i.test(spec)) return 'Git'
+      if (/^https?:\/\//i.test(spec)) return /^https:/i.test(spec) ? 'HTTPS' : 'HTTP'
+      if ((prefixed && /^[a-z\d*^~<>=][a-z\d*^~<>=.|+ -]*$/i.test(spec)) || /^npm:/i.test(spec)) return 'npm'
+      return t('installSource')
     }
 
-    function Panel(props) {
-      const { ctx, t } = props
-      // Re-render on a locale switch; `t` itself reads the active locale.
-      React.useSyncExternalStore(
-        (notify) => ctx.locale.subscribe(notify),
-        () => ctx.locale.getSnapshot(),
-      )
-      const fieldId = React.useId()
-      const fileInput = React.useRef(null)
-      const previewButton = React.useRef(null)
-      const reviewTitle = React.useRef(null)
-      const focusPreview = React.useRef(false)
-      const running = React.useRef(false)
-      const cloudRead = React.useRef(0)
-      const inventoryRead = React.useRef(0)
-      const selected = React.useRef(null)
-      const [plan, setPlan] = React.useState(null)
-      const [receipt, setReceipt] = React.useState(null)
-      const [flowError, setFlowError] = React.useState(null)
-      const [status, setStatus] = React.useState(null)
-      const [cloud, setCloud] = React.useState({ state: 'unknown' })
-      const [busy, setBusy] = React.useState(null)
-      const [notice, setNotice] = React.useState(null)
-      const [pending, setPending] = React.useState(null)
-      const [gistId, setGistId] = React.useState('')
-      const [token, setToken] = React.useState('')
-      const [includeMachine, setIncludeMachine] = React.useState(false)
-      const [statusError, setStatusError] = React.useState(null)
-      const [showFiles, setShowFiles] = React.useState(false)
-      // `null` means "not asked yet", which is deliberately distinct from a
-      // payload with `available: false` — the page must not paint a green line
-      // for a question it has not put to the host.
-      const [plugins, setPlugins] = React.useState(null)
-      const [pluginReport, setPluginReport] = React.useState(null)
-
-      const errorText = React.useCallback((error) => {
-        const code = typeof error?.code === 'string' ? error.code : 'other'
-        const localized = t(`err.${code}`)
-        const fallback = t('err.other')
-        const detail = typeof error?.message === 'string' ? error.message : ''
-        if (localized === `err.${code}`) return detail === '' ? fallback : detail
-        return detail === '' ? localized : `${localized}\n${detail}`
-      }, [t])
-
-      const run = React.useCallback(async (label, task) => {
-        // State disables the controls on render; the ref also closes the gap
-        // before that render, including rapid clicks and keyboard activation.
-        if (running.current || (selected.current !== null && label !== 'combined')) return
-        running.current = true
-        setBusy(label)
-        setNotice(null)
-        setFlowError(null)
-        if (['prepare', 'sync', 'restore', 'plugins', 'undo'].includes(label)) setReceipt(null)
-        try {
-          await task()
-        } catch (error) {
-          const text = errorText(error)
-          if (label === 'combined' || label === 'prepare') {
-            const ambiguous = label === 'combined' && !['stale-plan', 'busy'].includes(error?.code)
-            setFlowError(ambiguous ? `${text}\n${t('uncertainResult')}` : text)
-          } else setNotice({ kind: 'error', text })
-        } finally {
-          running.current = false
-          setBusy(null)
-        }
-      }, [errorText, t])
-
-      React.useEffect(() => {
-        if (plan !== null || receipt !== null) reviewTitle.current?.focus()
-        else if (focusPreview.current) {
-          previewButton.current?.focus()
-          focusPreview.current = false
-        }
-      }, [plan, receipt])
-
-      /** Local facts plus what the Host remembers about the cloud copy. */
-      const refresh = React.useCallback(async (useSavedSource = false, active = () => true) => {
-        const payload = await api('/status')
-        if (!payload.counts || !Array.isArray(payload.files) || !Array.isArray(payload.excluded)) throw badResponse()
-        if (!active()) return payload
-        setStatus(payload)
-        setStatusError(null)
-        if (useSavedSource) setGistId(payload.cloud?.gistId ?? '')
-        setIncludeMachine(payload.cloud?.includeMachine === true)
-        return payload
-      }, [])
-
-      /** Read the cloud copy and say, in one line, whether it differs. */
-      const checkCloud = React.useCallback(async (body = {}) => {
-        const readId = ++cloudRead.current
-        setCloud({ state: 'checking' })
-        try {
-          const payload = await api('/gist/read', { method: 'POST', body })
-          if (readId !== cloudRead.current) return
-          const counts = payload.preview.counts
-          const different = counts.add + counts.overwrite + counts.merge
-          setCloud({
-            state: different === 0 ? 'same' : 'differs',
-            different,
-            files: payload.backup.files.length,
-            updatedAt: payload.ref.updatedAt ?? null,
-            url: payload.ref.htmlUrl ?? null,
-          })
-        } catch (error) {
-          if (readId !== cloudRead.current) return
-          setCloud({
-            state: error?.code === 'no-cloud' ? 'none' : 'error',
-            text: errorText(error),
-          })
-        }
-      }, [errorText])
-
-      /** Which declared plugins this machine does not have yet. */
-      const checkPlugins = React.useCallback(async () => {
-        const readId = ++inventoryRead.current
-        try {
-          const payload = await api('/plugins')
-          if (readId === inventoryRead.current) setPlugins(payload)
-        } catch (error) {
-          if (readId !== inventoryRead.current) return
-          // A host that cannot answer is not the same as a clean answer, and the
-          // page has to show which one it got.
-          setPlugins({ available: false, reason: 'unreachable', text: errorText(error) })
-        }
-      }, [errorText])
-
-      /** A one-line result banner, defined before any render path uses it. */
-      const noticeView = (value) => h('div', { className: `dpgsp-notice dpgsp-notice-${value.kind}`, role: value.kind === 'error' ? 'alert' : 'status' },
-        value.text,
-        value.href === null || value.href === undefined
-          ? null
-          : h('div', null, h('a', { className: 'dpgsp-link', href: value.href, target: '_blank', rel: 'noreferrer' }, value.href)),
-      )
-
-      /** One label/value line in the status card. */
-      const row = (key, value) => h('div', { className: 'dpgsp-row', key },
-        h('span', { className: 'dpgsp-key' }, key),
-        h('span', { className: 'dpgsp-val' }, value),
-      )
-
-      // On open: local facts always, the cloud only when one is remembered.
-      React.useEffect(() => {
-        let active = true
-        void (async () => {
-          try {
-            const payload = await refresh(true, () => active)
-            if (active && payload.cloud?.gistId) await checkCloud()
-          } catch (error) {
-            if (active) setStatusError(error)
-          }
-        })()
-        // Whether plugins are missing is worth knowing before any sync: it is
-        // what a fresh restore of a previous machine leaves behind.
-        void checkPlugins()
-        return () => { active = false; ++cloudRead.current; ++inventoryRead.current }
-      }, [refresh, checkCloud, checkPlugins])
-
-      const retryStatus = () => run('status', async () => {
-        setStatusError(null)
-        try {
-          await refresh(true)
-          await checkPlugins()
-        } catch (error) { setStatusError(error) }
-      })
-
-      const requestToken = () => token.trim() ? { token: token.trim() } : {}
-      const requestSource = () => ({ ...(gistId.trim() ? { id: gistId.trim() } : {}), ...requestToken() })
-
-      const prepare = () => run('prepare', async () => {
-        setPending(null)
-        const payload = await api('/sync/preview', { method: 'POST', body: requestSource() })
-        if (!validPreview(payload)) throw badResponse()
-        // Never persist the plan, the token, or backup contents on the client.
-        selected.current = payload
-        setPlan(payload)
-      })
-
-      const cancelPlan = () => {
-        if (running.current) return
-        selected.current = null
-        focusPreview.current = true
-        setPlan(null)
-      }
-
-      const confirmPlan = () => run('combined', async () => {
-        const current = selected.current
-        if (!current || current !== plan || !current.planId || !hasCandidateList(current.plugins)) return
-        // Consume before awaiting. A lost response may still have applied;
-        // retry always starts with a fresh preview, never the same mutation.
-        selected.current = null
-        setPlan(null)
-        ++cloudRead.current
-        ++inventoryRead.current
-        setCloud({ state: 'unknown' })
-        setPlugins(null)
-        setPluginReport(null)
-        try {
-          const payload = await api('/sync/install', {
-            method: 'POST', body: { planId: current.planId, confirm: true },
-          })
-          if (payload.ref?.id !== current.ref.id || typeof payload.complete !== 'boolean'
-            || !Number.isSafeInteger(payload.report?.restored) || !hasCounts(payload.report.counts)
-            || typeof payload.restart !== 'boolean' || typeof payload.plugins?.available !== 'boolean'
-            || (payload.warnings !== undefined && (!Array.isArray(payload.warnings) || !payload.warnings.every(text => typeof text === 'string')))) throw badResponse()
-          setReceipt(payload)
-        } finally {
-          // The receipt checks the Gist declarations, not every local package.
-          // Refresh both local views (GET only), even after a lost response.
-          await Promise.all([checkPlugins(), refresh().catch(() => setNotice({ kind: 'warn', text: t('refreshFailed') }))])
-        }
-      })
-
-      const upload = () => run('upload', async () => {
-        // Upload overwrites the remembered target, never an unsaved restore draft.
-        const payload = await api('/gist/upload', { method: 'POST', body: { includeMachine, ...requestToken() } })
-        // A dependency left out of the upload is news the reader can only act on
-        // here: on the other machine it just silently will not be there.
-        const left = Array.isArray(payload.dropped) && payload.dropped.length > 0
-          ? `\n${t('droppedTitle')}：${payload.dropped.map(entry => `${entry.name}（${entry.spec}）`).join('、')}\n${t('droppedHint')}`
-          : ''
-        setNotice({
-          kind: 'ok',
-          text: `${t('uploaded')} ${payload.files} ${t('filesUnit')}（${formatBytes(payload.bytes)}）${left}`,
-          href: payload.ref.htmlUrl ?? null,
-        })
-        await refresh(true)
-        await checkCloud(requestToken())
-      })
-
-      const sync = () => run('sync', async () => {
-        const payload = await api('/sync', {
-          method: 'POST',
-          body: requestSource(),
-        })
-        const counts = payload.report.counts
-        const skip = payload.report.dropped.length === 0
-          ? ''
-          : `${t('syncedSkipped')} ${payload.report.dropped.length} ${t('syncedSkippedUnit')}`
-        setNotice({
-          kind: 'ok',
-          text: `${t('synced')} ${payload.report.restored} ${t('filesUnit')}（${configSummary(counts, t)}）${skip}\n${t('restartHint')}`,
-        })
-        setPluginReport(null)
-        await refresh(true)
-        // A config-only sync can introduce new local declarations.
-        await checkPlugins()
-        await checkCloud(requestToken())
-      })
-
-      const installPlugins = () => run('plugins', async () => {
-        const payload = await api('/plugins/install', { method: 'POST', body: {} })
-        ++inventoryRead.current
-        setPlugins(payload)
-        setPluginReport(payload)
-      })
-
-      const undo = () => run('undo', async () => {
-        const payload = await api('/undo', { method: 'POST', body: {} })
-        setNotice({ kind: 'ok', text: `${t('undone')} ${payload.report.reverted} ${t('filesUnit')}. ${t('undoLimit')}` })
-        setPluginReport(null)
-        await refresh()
-        await checkPlugins()
-        await checkCloud(requestToken())
-      })
-
-      const saveSettings = () => run('save', async () => {
-        const payload = await api('/settings', {
-          method: 'POST',
-          body: { gistId: gistId.trim(), includeMachine },
-        })
-        setNotice({ kind: 'ok', text: t('saved') })
-        await refresh(true)
-        if (payload.cloud.gistId === null) setCloud({ state: 'none' })
-        else await checkCloud(requestToken())
-      })
-
-      const checkToken = () => run('token', async () => {
-        const payload = await api('/gist/token', {
-          method: 'POST',
-          body: token.trim() === '' ? {} : { token: token.trim() },
-        })
-        const login = typeof payload.login === 'string' && payload.login.trim() ? ` · ${payload.login.trim()}` : ''
-        setNotice({ kind: login ? 'ok' : 'warn', text: `${login ? t('tokenOk') : t('tokenUnverified')}${t(`source.${payload.source}`)}${login}` })
-      })
-
-      /** Remember the usage-counter choice as soon as it is toggled. */
-      const toggleMachine = (value) => run('settings', async () => {
-        await api('/settings', { method: 'POST', body: { includeMachine: value } })
-        setIncludeMachine(value)
-      })
-
-      /** Read only the file explicitly selected in this component's input. */
-      const chooseFile = (event) => {
-        const input = event.currentTarget
-        const file = input.files?.[0]
-        input.value = ''
-        if (!file) return
-        void run('file', async () => {
-          const text = await file.text()
-          let parsed
-          try { parsed = JSON.parse(text) } catch { throw Object.assign(new Error(''), { code: 'invalidJson' }) }
-          const payload = await api('/preview', { method: 'POST', body: { backup: parsed } })
-          setPending({ name: file.name, backup: parsed, preview: payload.preview })
-        })
-      }
-
-      const applyPending = () => run('restore', async () => {
-        const payload = await api('/restore', {
-          method: 'POST',
-          body: { backup: pending.backup, confirm: true },
-        })
-        setPending(null)
-        setNotice({
-          kind: 'ok',
-          text: `${t('imported')} ${payload.report.restored} ${t('filesUnit')}\n${t('restartHint')}`,
-        })
-        setPluginReport(null)
-        await refresh()
-        await checkPlugins()
-      })
-
-      if (status === null) {
-        // An HTTP, profile or transient connection error is not proof the
-        // plugin failed to load. Keep the diagnostic and a read-only retry here.
-        return h('div', { className: 'dpgsp-root' },
-          h('style', null, CSS),
-          h('div', { className: 'dpgsp-head' }, h('h2', null, t('title'))),
-          notice === null ? null : noticeView(notice),
-          h('div', { className: 'dpgsp-card' },
-            statusError === null ? h('div', { className: 'dpgsp-hint', role: 'status' }, t('busy'))
-              : noticeView({ kind: 'error', text: `${t('hostMissing')}\n${statusError.message || errorText(statusError)}` }),
-            statusError === null ? null : h('div', { className: 'dpgsp-actions' },
-              h('button', { className: 'dpgsp-btn', onClick: retryStatus, disabled: busy !== null }, t('retryStatus'))),
-          ),
-        )
-      }
-
-      // The host half is only re-imported when DSH restarts, while this page can
-      // already be the new one. A status payload without `cloud` therefore means
-      // "new page, old host": say so plainly instead of failing in the reader's
-      // face. Everything below tolerates `settings === null`.
-      const settings = status.cloud ?? null
-      const staleHost = settings === null
-      const exportHref = `${API}/export${includeMachine ? '?include=machine' : ''}`
-      const cloudUrl = cloud.url ?? (staleHost || settings.gistId === null ? null : `https://gist.github.com/${settings.gistId}`)
-      const verdict = staleHost
-        ? { kind: 'warn', text: t('needRestart'), hint: null }
-        : cloudVerdict(cloud, settings.gistId !== null, t)
-      const working = busy !== null || staleHost
-      const disabled = working || plan !== null
-
-      const stamp = (record) => record === null || record === undefined
-        ? t('never')
-        : `${formatTime(record.at)} · ${record.files ?? '?'} ${t('filesLabel')}`
-
-      const setupCard = h('section', { className: 'dpgsp-card dpgsp-setup', 'aria-labelledby': `${fieldId}-setup` },
-        h('h3', { id: `${fieldId}-setup`, className: 'dpgsp-cardtitle' }, t('setupTitle')),
-        h('div', { className: 'dpgsp-hint' }, t('setupHint')),
-        h('div', { className: 'dpgsp-field' },
-          h('label', { className: 'dpgsp-key', htmlFor: `${fieldId}-gist` }, t('gistIdLabel')),
-          h('input', { id: `${fieldId}-gist`, className: 'dpgsp-input', value: gistId, disabled,
-            placeholder: t('gistIdPlaceholder'), spellCheck: false, onChange: event => setGistId(event.target.value) }),
-        ),
-        h('div', { className: 'dpgsp-field' },
-          h('label', { className: 'dpgsp-key', htmlFor: `${fieldId}-token` }, t('tokenLabel')),
-          h('input', { id: `${fieldId}-token`, className: 'dpgsp-input', type: 'password', value: token, disabled,
-            autoComplete: 'off', spellCheck: false, placeholder: t('tokenPlaceholder'), onChange: event => setToken(event.target.value) }),
-        ),
-        h('div', { className: 'dpgsp-hint' }, t('tokenHint')),
-        plan !== null ? h('div', { className: 'dpgsp-sub' },
-          h('h4', { ref: reviewTitle, tabIndex: -1, className: 'dpgsp-cardtitle' }, t('previewTitle')),
-          row(t('previewSource'), plan.ref.updatedAt ? `${plan.ref.id} · ${formatTime(plan.ref.updatedAt)}` : plan.ref.id),
-          h('div', { className: 'dpgsp-hint' }, t('snapshotHint')),
-          row(t('previewTarget'), plan.preview.profile),
-          row(t('previewChanges'), configSummary(plan.preview.counts, t)),
-          configDetails(plan.preview, t),
-          plan.plugins.available ? packageList(plan.plugins.missing, t)
-            : h('div', { className: 'dpgsp-verdict dpgsp-warn' }, t('unavailablePlan'),
-              plan.plugins.reason ? ` (${codeText('reason', plan.plugins.reason, t)})` : null),
-          plan.plugins.available ? installedSelection(plan, t) : null,
-          plan.planId === null ? null : h('div', { className: 'dpgsp-verdict' }, t('trustHint')),
-          h('div', { className: 'dpgsp-hint' }, t('undoLimit')),
-          h('div', { className: 'dpgsp-actions' },
-            h('button', { type: 'button', className: 'dpgsp-btn dpgsp-btn-primary', disabled: working || !plan.planId,
-              onClick: confirmPlan }, t('confirmAction')),
-            h('button', { type: 'button', className: 'dpgsp-btn', disabled: working, onClick: cancelPlan }, t('cancel')),
-          ),
-        ) : h('div', { className: 'dpgsp-actions' },
-          h('button', { type: 'button', ref: previewButton, className: 'dpgsp-btn dpgsp-btn-primary',
-            onClick: prepare, disabled: working || (!gistId.trim() && !settings?.gistId) }, t('previewAction')),
-          busy === 'prepare' || busy === 'combined' ? h('span', { role: 'status', className: 'dpgsp-hint' },
-            busy === 'prepare' ? t('previewBusy') : t('installBusy')) : null,
-        ),
-        flowError === null ? null : noticeView({ kind: 'error', text: flowError }),
-        receipt === null ? null : restoreOutcome(receipt, t, reviewTitle),
-      )
-
-      const statusCard = h('div', { className: 'dpgsp-card' },
-        h('div', { className: 'dpgsp-cardtitle' }, t('statusTitle')),
-        h('div', { className: `dpgsp-verdict dpgsp-${verdict.kind}` }, verdict.text),
-        verdict.hint === null ? null : h('div', { className: 'dpgsp-hint' }, verdict.hint),
-        h('div', { className: 'dpgsp-facts' },
-          row(t('profileLabel'), status.profile),
-          row(t('filesLabel'), `${status.counts.files} · ${formatBytes(status.counts.bytes)}`),
-          staleHost ? null : row(t('lastUpload'), stamp(settings.lastUpload)),
-          staleHost ? null : row(t('lastSync'), stamp(settings.lastSync)),
-        ),
-        h('div', { className: 'dpgsp-actions' },
-          h('button', { className: 'dpgsp-btn', onClick: () => run('check', () => checkCloud(requestToken())), disabled }, t('recheck')),
-          cloudUrl === null ? null : h('a', { className: 'dpgsp-link', href: cloudUrl, target: '_blank', rel: 'noreferrer' }, t('openCloud')),
-        ),
-      )
-
-      const uploadCard = h('div', { className: 'dpgsp-card' },
-        h('div', { className: 'dpgsp-cardtitle' }, t('uploadTitle')),
-        h('div', { className: 'dpgsp-hint' }, t('uploadHint')),
-        row(t('uploadTarget'), settings?.gistId ?? t('newGist')),
-        h('div', { className: 'dpgsp-actions' },
-          h('button', { className: 'dpgsp-btn', onClick: upload, disabled }, busy === 'upload' ? t('busy') : t('uploadAction')),
-          h('a', { className: 'dpgsp-btn', href: exportHref }, t('exportAction')),
-        ),
-      )
-
-      // This list describes the live profile; only the Gist preview above is
-      // authorization for the combined action. Keep the standalone path distinct.
-      const pluginsBlock = (() => {
-        if (plugins === null) return h('div', { className: 'dpgsp-hint' }, t('pluginsChecking'))
-        if (!hasCandidateList(plugins)) return h('div', { className: 'dpgsp-sub' },
-          h('div', { className: 'dpgsp-verdict dpgsp-warn' }, t('pluginsUnknown')),
-          h('div', { className: 'dpgsp-hint' }, plugins.text || codeText('reason', plugins.reason, t)),
-          h('div', { className: 'dpgsp-hint' }, t('pluginsUnknownHint')),
-        )
-        if (!plugins.missing.length) return h('div', { className: 'dpgsp-hint' }, t('pluginsAllPresent'))
-        return h('div', { className: 'dpgsp-sub' },
-          h('h4', { className: 'dpgsp-subtitle' }, t('pluginsTitle')),
-          packageList(plugins.missing, t),
-          h('div', { className: 'dpgsp-actions' }, h('button', {
-            className: 'dpgsp-btn', onClick: installPlugins,
-            disabled: disabled || !plugins.missing.some(entry => entry.resolvable),
-          }, busy === 'plugins' ? t('pluginsInstalling') : t('pluginsInstall'))),
-        )
-      })()
-
-      const syncCard = h('div', { className: 'dpgsp-card' },
-        h('div', { className: 'dpgsp-cardtitle' }, t('syncTitle')),
-        h('div', { className: 'dpgsp-hint' }, t('syncHint')),
-        h('div', { className: 'dpgsp-actions' },
-          h('button', { className: 'dpgsp-btn', onClick: sync, disabled }, busy === 'sync' ? t('busy') : t('syncAction')),
-          status.undo === null
-            ? null
-            : h('button', { className: 'dpgsp-btn', onClick: undo, disabled }, t('undoAction')),
-        ),
-        status.undo === null
-          ? null
-          : h('div', { className: 'dpgsp-hint' }, `${t('undoAvailable')}${formatTime(status.undo.createdAt)} · ${status.undo.files} ${t('filesLabel')}`),
-        h('div', { className: 'dpgsp-hint' }, t('undoLimit')),
-        pluginsBlock,
-        pluginReport === null ? null : pluginOutcome(pluginReport, t),
-      )
-
-      const pendingCard = pending === null ? null : h('div', { className: 'dpgsp-card' },
-        h('div', { className: 'dpgsp-cardtitle' }, `${t('pendingTitle')}：${pending.name}`),
-        h('div', { className: 'dpgsp-hint' }, `${t('pendingPlan')} ${pending.preview.files.length} ${t('filesUnit')}: ${configSummary(pending.preview.counts, t)}`),
-        pending.preview.dropped.length === 0
-          ? null
-          : h('div', { className: 'dpgsp-hint' }, `${t('excludedLabel')}：${pending.preview.dropped.map(entry => `${entry.path} (${t(`code.${entry.code}`)})`).join(', ')}`),
-        h('div', { className: 'dpgsp-actions' },
-          h('button', { className: 'dpgsp-btn dpgsp-btn-primary', onClick: applyPending, disabled }, busy === 'restore' ? t('busy') : t('importConfirm')),
-          h('button', { className: 'dpgsp-btn', onClick: () => setPending(null), disabled }, t('cancel')),
-        ),
-      )
-
-      const advanced = h('details', { className: 'dpgsp-details' },
-        h('summary', null, t('advanced')),
-        h('div', { className: 'dpgsp-advbody' },
-          h('div', { className: 'dpgsp-hint' }, t('saveHint')),
-          h('div', { className: 'dpgsp-actions' },
-            h('button', { className: 'dpgsp-btn', onClick: saveSettings, disabled }, t('save')),
-            h('button', { className: 'dpgsp-btn', onClick: checkToken, disabled }, t('tokenCheck')),
-          ),
-          h('div', { className: 'dpgsp-hint' }, settings === null ? t('needRestart') : `${t('gistIdHint')}${settings.settingsFile ?? ''}`),
-          h('div', { className: 'dpgsp-hint' }, `${t('profileLocation')}${status.profile} (${status.root ?? ''})`),
-          h('div', { className: 'dpgsp-sub' },
-            h('div', { className: 'dpgsp-subtitle' }, t('newMachineTitle')),
-            h('ol', { className: 'dpgsp-steps' },
-              h('li', null, t('newMachineStep1')),
-              h('li', null, t('newMachineStep2')),
-              h('li', null, t('newMachineStep3')),
-              h('li', null, t('newMachineStep4')),
-            ),
-          ),
-          h('label', { className: 'dpgsp-check' },
-            h('input', {
-              type: 'checkbox',
-              checked: includeMachine, disabled,
-              onChange: (event) => toggleMachine(event.target.checked),
-            }),
-            t('includeMachine'),
-          ),
-          h('div', { className: 'dpgsp-actions' },
-            h('input', { type: 'file', accept: '.json,application/json', ref: fileInput, hidden: true, onChange: chooseFile }),
-            h('button', { className: 'dpgsp-btn', onClick: () => fileInput.current?.click(), disabled }, t('pickFile')),
-          ),
-          h('button', {
-            className: 'dpgsp-btn dpgsp-btn-link',
-            onClick: () => setShowFiles((value) => !value),
-            disabled: false,
-          }, showFiles ? t('hideFiles') : t('showFiles')),
-          showFiles ? fileLists(status, t) : null,
-          h('div', { className: 'dpgsp-hint' }, t('limits')),
-        ),
-      )
-
-      return h('div', { className: 'dpgsp-root' },
-        h('style', null, CSS),
-        h('div', { className: 'dpgsp-head' },
-          h('h2', null, t('title')),
-          h('p', null, t('subtitle')),
-        ),
-        notice === null ? null : noticeView(notice),
-        setupCard,
-        statusCard,
-        syncCard,
-        uploadCard,
-        pendingCard,
-        advanced,
-      )
+    function compatible(s) {
+      const v = /^(\d+)\.(\d+)\.\d+(?:[-+].*)?$/.exec(s?.version ?? '')
+      return !!s?.cloud && !!v && (+v[1] > 1 || (+v[1] === 1 && +v[2] >= 3))
     }
-
-    /** One plain sentence about how the cloud copy compares with this machine. */
-    function cloudVerdict(cloud, hasCloud, t) {
-      if (cloud.state === 'checking') return { kind: 'muted', text: t('checking'), hint: null }
-      if (cloud.state === 'none') return { kind: 'warn', text: t('cloudNone'), hint: null }
-      if (cloud.state === 'same') return { kind: 'ok', text: t('cloudSame'), hint: null }
-      if (cloud.state === 'differs') {
-        return {
-          kind: 'warn',
-          text: `${t('cloudDiffers')} ${cloud.different} ${t('cloudDiffersFiles')}`,
-          hint: t('cloudDiffersHint'),
-        }
-      }
-      if (cloud.state === 'error') {
-        return { kind: 'warn', text: `${t('cloudUnreachable')}：${cloud.text}`, hint: null }
-      }
-      return {
-        kind: 'muted',
-        text: hasCloud ? t('notChecked') : t('cloudNone'),
-        hint: null,
-      }
+    function btn(action, label, onClick, { kind, glyph, ...props } = {}) {
+      return h('button', { type: 'button', className: `dpgsp-btn${kind ? ` dpgsp-${kind}` : ''}`, 'data-action': action, onClick, ...props },
+        glyph ? icon(glyph, 16) : null, label)
     }
-
-    // Unknown diagnostics are still useful. Render all values as text; never
-    // make a package spec into a link, a command, or client-side install input.
-    function codeText(prefix, code, t) {
-      if (typeof code !== 'string' || !code) return ''
-      const key = `${prefix}.${code}`
-      const value = t(key)
-      return value === key ? code : value
+    const box = (kind, ...children) => h('div', { className: `dpgsp-box${kind ? ` dpgsp-${kind}` : ''}` }, ...children)
+    const note = (text, glyph = 'info') => h('p', { className: 'dpgsp-note' }, icon(glyph, 15), h('span', null, text))
+    const hint = text => h('p', { className: 'dpgsp-hint' }, text)
+    const details = (label, ...children) => h('details', { className: 'dpgsp-details' }, h('summary', null, label), ...children)
+    const title = text => h('h2', { tabIndex: -1, 'data-focus': 'title' }, text)
+    const facts = pairs => h('dl', { className: 'dpgsp-facts' }, pairs.filter(Boolean).map(([k, v]) => h('div', { key: k }, h('dt', null, k), h('dd', null, v))))
+    const isolated = value => h('bdi', null, value)
+    const mono = value => h('code', { dir: 'ltr' }, value)
+    const heading = (text, ...children) => h('section', { className: 'dpgsp-group' }, h('h3', null, text), ...children)
+    const badge = text => h('span', { className: 'dpgsp-tag' }, text)
+    function list(items, makeRow) {
+      return h('ul', { className: 'dpgsp-list' }, items.map((item, i) => h('li', { key: i, className: 'dpgsp-row' }, ...makeRow(item))))
     }
-
-    function configDetails(preview, t) {
-      return h('details', { className: 'dpgsp-details' },
-        h('summary', null, `${t('previewFiles')} · ${t('excludedLabel')} ${preview.dropped.length}`),
-        h('ul', { className: 'dpgsp-list' },
-          preview.files.map(file => h('li', { key: file.path },
-            h('bdi', { className: 'dpgsp-path' }, file.path), h('span', null, t(FILE_STATUSES[file.status])))),
-          preview.dropped.map(entry => h('li', { key: entry.path },
-            h('bdi', { className: 'dpgsp-path' }, entry.path), h('span', null, codeText('code', entry.code, t)))),
-        ),
-      )
-    }
-
-    function packageList(missing, t) {
-      if (!missing.length) return h('div', { className: 'dpgsp-hint' }, t('previewNone'))
-      const group = (entries, title) => !entries.length ? null : h('div', { className: 'dpgsp-sub' },
-        h('h4', { className: 'dpgsp-subtitle' }, `${title} (${entries.length})`),
-        h('ul', { className: 'dpgsp-list' }, entries.map(entry => h('li', { key: entry.name },
-          h('div', { className: 'dpgsp-package' },
-            h('strong', null, h('bdi', null, entry.name)),
-            h('span', null, `${t('specLabel')}: `, h('code', { dir: 'ltr' }, entry.installSpec ?? entry.spec ?? t('noSpec'))),
-            entry.resolvable ? null : h('span', { className: 'dpgsp-hint' }, codeText('note', entry.note, t)),
-          ),
-        ))),
-      )
-      return h('div', null, group(missing.filter(item => item.resolvable), t('previewInstall')),
-        group(missing.filter(item => !item.resolvable), t('previewSkip')))
-    }
-
-    /** Packages already on disk can still be newly selected by the restored manifest. */
-    function installedSelection(plan, t) {
-      const installed = Array.isArray(plan.plugins.installed) ? plan.plugins.installed.filter(name => typeof name === 'string') : []
-      const added = new Set(plan.preview.manifest?.bundlesAdded ?? [])
-      const enabling = installed.filter(name => added.has(name))
-      const other = installed.filter(name => !added.has(name))
-      const names = items => h('ul', { className: 'dpgsp-list' }, items.map(name => h('li', { key: name }, h('bdi', null, name))))
+    const fileList = (files, t) => list(files, file => [icon('file'), h('div', { className: 'dpgsp-iteminfo' }, mono(file.path)), badge(t(file.status))])
+    function FileChanges({ p, t }) {
+      const changed = p.files.filter(f => f.status !== 'identical')
+      const same = p.files.filter(f => f.status === 'identical')
       return h(React.Fragment, null,
-        enabling.length ? h('div', { className: 'dpgsp-sub' },
-          h('h4', { className: 'dpgsp-subtitle' }, `${t('alreadyEnable')} (${enabling.length})`), names(enabling)) : null,
-        other.length ? h('details', { className: 'dpgsp-details' },
-          h('summary', null, `${t('alreadyOther')} (${other.length})`), names(other)) : null,
-      )
+        changed.length ? heading(countText(t, 'changeFiles', changed.length), fileList(changed, t)) : null,
+        skippedCount(p) ? heading(`${t('retained')} (${skippedCount(p)})`,
+          p.dropped.length ? list(p.dropped, f => [icon('file'), h('div', { className: 'dpgsp-iteminfo' }, mono(f.path), hint(codeText(t, 'code', f.code)))]) : null) : null,
+        same.length ? details(`${t('showUnchanged')} (${same.length})`, fileList(same, t)) : null)
+    }
+    function PackageRows({ p, preview, t }) {
+      const yes = installable(p)
+      const no = p.missing.filter(row => !row.resolvable)
+      const add = new Set(preview?.manifest?.bundlesAdded ?? [])
+      const enabling = p.installed.filter(name => add.has(name))
+      const other = p.installed.filter(name => !add.has(name))
+      const group = (rows, resolvable) => list(rows, entry => {
+        const spec = resolvable ? entry.installSpec : entry.spec
+        // A Git/HTTPS spec can omit the package name. Display the full literal
+        // spec, never turn it into a hyperlink, and never invent a registry.
+        return [icon('pkg'), h('div', { className: 'dpgsp-iteminfo' },
+          !resolvable || !spec.startsWith(`${entry.name}@`) ? h('strong', null, isolated(entry.name)) : null,
+          h('div', null, resolvable ? h('span', { className: 'dpgsp-meta' }, sourceKind(entry, t), ' · ') : null, mono(spec ?? t('noSpec'))),
+          resolvable ? null : hint(codeText(t, 'note', entry.note))) ]
+      })
+      const named = values => list(values, value => [icon('pkg'), mono(value)])
+      return h(React.Fragment, null,
+        yes.length ? heading(countText(t, 'pluginsToInstall', yes.length), group(yes, true)) : null,
+        no.length ? heading(`${t('unresolved')} (${no.length})`, group(no, false)) : null,
+        enabling.length ? heading(`${t('alreadyEnable')} (${enabling.length})`, named(enabling)) : null,
+        other.length ? details(`${t('alreadyOther')} (${other.length})`, named(other)) : null)
+    }
+    function PlanBody({ plan, t, changeSource }) {
+      const p = plan.preview
+      const standard = plan.mode === 'standard'
+      const unknown = standard && !verifiedInventory(plan.plugins)
+      const missing = standard && !unknown ? plan.plugins.missing : []
+      const blocked = skippedCount(p) > 0 || missing.some(row => !row.resolvable)
+      const work = actionable(plan)
+      return h(React.Fragment, null,
+        h('div', { className: 'dpgsp-source' }, icon(plan.mode === 'local' ? 'file' : 'pc'), t('source'),
+          h('strong', null, isolated([p.sourceProfile, plan.mode === 'local' ? plan.fileName : plan.ref.id].filter(txt).join(' · '))),
+          txt(p.createdAt) ? h('span', null, formatTime(p.createdAt)) : null, changeSource),
+        hint(`${t('targetProfile')}: ${p.profile}`),
+        standard ? null : box(null, h('p', null, t('configScope'))),
+        !work && !unknown ? box(blocked ? 'warning' : null,
+          blocked ? h('p', null, t('noApplicable')) : h(React.Fragment, null, h('strong', null, t('noChanges')), hint(t(standard ? 'filesPluginsSame' : 'filesSame')))) : null,
+        h(FileChanges, { p, t }),
+        unknown ? box('warning', h('strong', null, t('cannotVerify')), hint(codeText(t, 'reason', plan.plugins.reason)), h('p', null, t('cannotVerifyHint'))) : null,
+        standard && !unknown ? h(PackageRows, { p: plan.plugins, preview: p, t }) : null)
+    }
+    function PluginReport({ p, t }) {
+      if (!p) return null
+      const verified = verifiedReport(p)
+      const results = Array.isArray(p.results) ? p.results.filter(row => txt(row?.name)) : []
+      const scripts = pendingBuilds(p)
+      const remaining = Array.isArray(p.missing) ? p.missing.filter(row => txt(row?.name)) : []
+      return h('div', { className: 'dpgsp-group' },
+        verified ? hint(Object.entries(OUTCOMES).map(([k, label]) => `${t(label)} ${p.outcomeCounts[k]}`).join(' · '))
+          : box('warning', h('strong', null, t('pluginUnknown')), hint(codeText(t, 'reason', p.reason))),
+        scripts.length ? box('warning', h('strong', null, t('pendingBuilds')), list(scripts, name => [mono(name)]), hint(t('buildHint'))) : null,
+        results.length ? list(results, r => [icon('pkg'), h('div', { className: 'dpgsp-iteminfo' },
+          h('span', null, isolated(r.name), ' · ', Object.hasOwn(OUTCOMES, r.outcome) ? t(OUTCOMES[r.outcome]) : t('pluginUnknown')),
+          txt(r.message) ? hint(r.outcome === 'skipped' ? codeText(t, 'note', r.message) : r.message) : null)]) : null,
+        remaining.length ? h('p', null, `${t('stillMissing')}: `, remaining.map(r => r.name).join(', ')) : null)
+    }
+    function RestoreReceipt({ receipt, t, undoButton, onRepreview, locked }) {
+      if (!receipt) return null
+      if (receipt.mode === 'unknown') return box('warning', h('h3', { tabIndex: -1, 'data-focus': 'restore-receipt' }, t('restoreUnverified')),
+        hint(`${t('source')}: ${receipt.source}`), h('p', null, t('uncertain')), undoButton)
+      if (receipt.mode === 'undo') return box('success', h('h3', { tabIndex: -1, 'data-focus': 'restore-receipt' }, t('undoDone')),
+        h('p', null, countText(t, 'reverted', receipt.reverted), ' ', t('undoLimit')))
+      const { result: r, mode } = receipt
+      const attention = !!r.warnings?.length || (mode === 'standard' && (r.complete !== true || incomplete(r.plugins)))
+      const scripts = pendingBuilds(r.plugins)
+      const missing = verifiedInventory(r.plugins) ? r.plugins.missing : null
+      const retry = mode === 'standard' && missing?.length > 0
+      const results = Array.isArray(r.plugins?.results) ? r.plugins.results : []
+      const failed = results.filter(item => item?.outcome === 'failed').length
+      const skipped = results.filter(item => item?.outcome === 'skipped').length
+      return h('section', { className: `dpgsp-box dpgsp-${attention ? 'warning' : 'success'}`, 'aria-label': t(attention ? 'restoreAttention' : 'restoreDone') },
+        h('h3', { tabIndex: -1, 'data-focus': 'restore-receipt', className: 'dpgsp-line' }, icon(attention ? 'info' : 'check'), t(attention ? 'restoreAttention' : 'restoreDone')),
+        h('p', null, [countText(t, 'changedCount', changes(r.report)), verifiedReport(r.plugins) ? countText(t, 'installedCount', r.plugins.outcomeCounts.installed) : null,
+          receipt.restart ? t('restart') : null].filter(Boolean).join(' · ')),
+        scripts.length ? note(`${t('pendingBuilds')}: ${scripts.join(', ')}. ${t('buildHint')}`, 'shield') : null,
+        r.warnings?.length ? box('warning', h('strong', null, t('warnings')), list(r.warnings, w => [w])) : null,
+        mode === 'standard' && !verifiedReport(r.plugins) ? hint(t('pluginUnknown')) : null,
+        failed || skipped || missing?.length ? h('p', null, [failed ? `${t('failed')} ${failed}` : null, skipped ? `${t('skipped')} ${skipped}` : null, missing?.length ? `${t('stillMissing')} ${missing.length}` : null].filter(Boolean).join(' · ')) : null,
+        retry ? h('div', { className: 'dpgsp-group' }, hint(t('retryHint')), h('div', { className: 'dpgsp-actions' }, btn('preview-receipt-source', t('previewReceiptSource'), onRepreview, { kind: 'quiet', disabled: locked }))) : null,
+        details(t('resultDetails'), h('div', { className: 'dpgsp-stack' },
+          hint(`${t('source')}: ${receipt.fileName ?? r.ref?.id ?? '—'}`), h(FileChanges, { p: r.report, t }),
+          r.plugins ? heading(t('pluginResults'), h(PluginReport, { p: r.plugins, t })) : null)),
+        hint(t('undoLimit')), undoButton)
+    }
+    function CopyReceipt({ url, t }) {
+      const [state, setState] = React.useState('idle')
+      const field = React.useRef(null)
+      const alive = React.useRef(false)
+      React.useEffect(() => { alive.current = true; return () => { alive.current = false } }, [])
+      React.useEffect(() => { if (state === 'manual') { field.current?.focus(); field.current?.select() } }, [state])
+      const copy = async () => {
+        try {
+          if (!navigator.clipboard?.writeText) throw Error()
+          await navigator.clipboard.writeText(url)
+          if (alive.current) setState('copied')
+        } catch { if (alive.current) { setState('manual'); field.current?.focus(); field.current?.select() } }
+      }
+      return h('section', { className: 'dpgsp-group', 'aria-label': t('ready') },
+        h('div', { className: 'dpgsp-ready' }, h('h3', { tabIndex: -1, className: 'dpgsp-line', 'data-focus': 'backup-receipt' }, icon('check'), t('ready')),
+          btn('copy', t('copy'), copy, { glyph: 'copy' })),
+        h('span', { role: 'status', className: state === 'idle' ? 'dpgsp-sr' : 'dpgsp-hint' }, state === 'copied' ? t('copied') : state === 'manual' ? t('manualCopy') : ''),
+        state === 'manual' ? h('label', { className: 'dpgsp-field' }, t('link'), h('input', { className: 'dpgsp-input', ref: field, readOnly: true, value: url, dir: 'ltr', onFocus: e => e.target.select() })) : null)
+    }
+    function LocalInventory({ status: s, t }) {
+      return details(t('localInventory'), h('div', { className: 'dpgsp-stack' },
+        heading(`${t('defaultInventory')} (${s.files.length})`, list(s.files, f => [icon('file'), h('div', { className: 'dpgsp-iteminfo' }, mono(f.path)), badge(formatBytes(f.bytes))])),
+        heading(`${t('excluded')} (${s.excluded.length})`, list(s.excluded, f => [h('div', { className: 'dpgsp-iteminfo' }, mono(f.path), hint(codeText(t, 'code', f.code)))]))))
     }
 
-    const OUTCOMES = { installed: 'pluginsInstalledCount', 'already-present': 'pluginsPresentCount', failed: 'pluginsFailedCount', skipped: 'pluginsSkippedCount' }
+    function Panel({ ctx, t }) {
+      React.useSyncExternalStore(fn => ctx.locale.subscribe(fn), () => ctx.locale.getSnapshot())
+      const uid = React.useId()
+      const root = React.useRef(null)
+      const mounted = React.useRef(false)
+      const flight = React.useRef(null)
+      const selected = React.useRef(null)
+      const focusNext = React.useRef(null)
+      const opener = React.useRef('restore')
+      const fileInput = React.useRef(null)
+      const tokenInput = React.useRef(null)
+      const moreButton = React.useRef(null)
+      const [page, setPage] = React.useState({ name: 'home' })
+      const [status, setStatus] = React.useState(null)
+      const [statusError, setStatusError] = React.useState(null)
+      const [uploadCheck, setUploadCheck] = React.useState(null)
+      const [busy, setBusy] = React.useState(null)
+      const [issue, setIssue] = React.useState(null)
+      const [menu, setMenu] = React.useState(false)
+      const [sourceDraft, setSourceDraft] = React.useState('')
+      const [targetDraft, setTargetDraft] = React.useState('')
+      const [backupReceipt, setBackupReceipt] = React.useState(null)
+      const [restoreReceipt, setRestoreReceipt] = React.useState(null)
+      const [installReceipt, setInstallReceipt] = React.useState(null)
+      const [announcement, setAnnouncement] = React.useState('')
 
-    function pendingScripts(report) {
-      const results = Array.isArray(report?.results) ? report.results : []
-      return [...new Set(results.flatMap(item => Array.isArray(item?.pendingBuilds) ? item.pendingBuilds : [])
-        .filter(name => typeof name === 'string' && name))]
+      // One cancellable read or non-repeatable write at a time. A ref closes the
+      // gap between a button event and React committing its disabled state.
+      async function run(label, write, task, onError) {
+        if (flight.current || !mounted.current) return
+        const job = { write, controller: new AbortController() }
+        const active = () => mounted.current && flight.current === job
+        const call = async (path, body) => {
+          if (!active()) throw fail('cancelled')
+          const data = await api(path, body, job.controller.signal)
+          if (!active()) throw fail('cancelled')
+          return data
+        }
+        flight.current = job
+        setBusy(label)
+        setIssue(null)
+        setAnnouncement('')
+        try { await task(call, active) }
+        catch (error) {
+          if (active()) {
+            if (onError) onError(error)
+            else setIssue({ error })
+          }
+        } finally {
+          if (active()) { flight.current = null; setBusy(null) }
+        }
+      }
+      function releaseRead() {
+        const job = flight.current
+        if (job?.write) return false
+        if (job) { flight.current = null; job.controller.abort(); setBusy(null) }
+        return true
+      }
+      function takeToken() {
+        const input = tokenInput.current
+        const value = input?.value.trim() ?? ''
+        if (input) input.value = ''
+        return value ? { token: value } : {}
+      }
+      function move(next, focus = 'title') {
+        // A source or token never lives in a subsequent independent workflow.
+        if (tokenInput.current) tokenInput.current.value = ''
+        selected.current = null
+        setIssue(null)
+        setMenu(false)
+        setSourceDraft('')
+        setTargetDraft('')
+        setAnnouncement('')
+        focusNext.current = focus
+        setPage(next)
+      }
+      function home(focus = opener.current) {
+        if (releaseRead()) move({ name: 'home' }, focus)
+      }
+      async function readStatus(call) {
+        const s = await call('/status')
+        if (!validStatus(s)) throw fail('bad-response')
+        setStatus(s)
+        setStatusError(null)
+        setUploadCheck(null)
+        return s
+      }
+      // This is deliberately isolated from the mutation's try/catch: a failed
+      // local refresh is NOT a failed upload/restore or a reason to replay it.
+      async function afterWrite(call, active) {
+        setBusy('localBusy')
+        try { await readStatus(call) } catch (error) { if (active()) setStatusError(error) }
+      }
+      function retryStatus() {
+        return run('localBusy', false, async call => {
+          const s = await readStatus(call)
+          if (page.name === 'undo') move({ name: 'undo', snapshot: s.undo })
+          else if (page.name === 'backup' || page.name === 'home') move({ name: 'home' }, compatible(s) ? 'backup' : 'title')
+        }, setStatusError)
+      }
+      React.useEffect(() => {
+        mounted.current = true
+        // Mount only reads the local summary. No automatic cloud request,
+        // token lookup, package inventory, install, or settings write.
+        void run('localBusy', false, readStatus, setStatusError)
+        return () => {
+          mounted.current = false
+          if (!flight.current?.write) flight.current?.controller.abort()
+          flight.current = null
+          selected.current = null
+          if (tokenInput.current) tokenInput.current.value = ''
+        }
+      }, [])
+      React.useEffect(() => {
+        const name = focusNext.current
+        if (!name) return
+        const element = root.current?.querySelector(`[data-focus="${name}"]`)
+        if (element?.disabled && busy) return
+        const target = element && !element.disabled ? element : root.current?.querySelector('[data-focus="title"]')
+        if (target) { focusNext.current = null; target.focus() }
+      }, [page, busy, status, issue])
+      const cloud = status?.cloud
+      const targetId = cloud?.gistId ?? null
+      const includeMachine = cloud?.includeMachine === true
+      const stale = !compatible(status) || statusError !== null || uploadCheck !== null
+      const locked = stale || busy !== null
+      const rootAction = (which, action) => () => {
+        if (locked || flight.current) return
+        opener.current = which
+        action()
+      }
+      const repairable = e => e?.code === 'auth' || e?.code === 'rate-limit'
+      const consumedPlanError = e => !['stale-plan', 'busy'].includes(e?.code)
+      const notice = (key, extra = {}) => setIssue({ key, ...extra })
+
+      function sourcePage(mode) {
+        if (releaseRead()) move({ name: 'source', mode }, 'source')
+      }
+      function displayPlan(p) {
+        move({ name: 'preview', mode: p.mode, id: p.ref?.id, fileName: p.fileName, plan: p })
+        selected.current = p
+        setAnnouncement('reviewDone')
+      }
+      function prepare(mode, id, token = {}) {
+        if (stale || flight.current || !bareId(id)) return
+        move({ name: 'preview', mode, id })
+        return run('previewBusy', false, async call => {
+          const data = await call(mode === 'config' ? '/config/preview' : '/sync/preview', { id, ...token })
+          if (!validCloudPlan(data, mode, id)) throw fail('bad-response')
+          displayPlan({ ...data, mode })
+        }, error => setIssue({ error, repair: repairable(error) }))
+      }
+      function openRestore(mode) {
+        if (bareId(targetId)) return prepare(mode, targetId)
+        sourcePage(mode)
+      }
+      function sourceSubmit(e) {
+        e.preventDefault()
+        if (locked || flight.current) return
+        const id = sourceId(sourceDraft)
+        if (!id) { focusNext.current = 'source'; setIssue({ error: fail('bad-source') }); return }
+        return prepare(page.mode, id)
+      }
+      function confirmPlan() {
+        const p = selected.current
+        if (locked || flight.current || !p || p !== page.plan || !actionable(p)) return
+        selected.current = null // one-shot; even a lost response needs a new preview
+        move({ name: 'preview', mode: p.mode, id: p.ref?.id, fileName: p.fileName })
+        return run('applyBusy', true, async (call, active) => {
+          const route = p.mode === 'local' ? '/restore' : p.mode === 'config' ? '/config/restore' : '/sync/install'
+          const r = await call(route, { planId: p.planId, confirm: true })
+          if (!validRestore(r, p)) throw fail('bad-response')
+          setRestoreReceipt({ mode: p.mode, result: r, fileName: p.fileName, restart: p.mode === 'local' ? changes(r.report) > 0 : r.restart })
+          move({ name: 'home' }, 'restore-receipt')
+          await afterWrite(call, active)
+        }, error => {
+          const uncertain = consumedPlanError(error)
+          if (uncertain) setRestoreReceipt({ mode: 'unknown', source: p.ref?.id ?? p.fileName })
+          setIssue({ error, uncertain })
+        })
+      }
+      function chooseFile(event) {
+        const file = event.currentTarget.files?.[0]
+        event.currentTarget.value = ''
+        if (!file || locked || flight.current) return
+        move({ name: 'preview', mode: 'local', fileName: file.name })
+        return run('previewBusy', false, async (call, active) => {
+          // Matches the host's JSON import transport ceiling; the host validates
+          // the actual document and backup byte limits before making a plan.
+          if (file.size > 4 * 1024 * 1024) throw fail('too-large')
+          const text = await file.text()
+          if (!active()) return
+          let backup
+          try { backup = JSON.parse(text) } catch { throw fail('invalidJson') }
+          const r = await call('/preview', { backup, reviewed: true })
+          if (!txt(r.planId) || !filePlan(r.preview)) throw fail('bad-response')
+          displayPlan({ mode: 'local', fileName: file.name, planId: r.planId, preview: r.preview })
+        })
+      }
+      function beginUpload(expectedId, expectedMachine, token = {}) {
+        if (locked || flight.current) return
+        let sent = false
+        return run('uploadBusy', true, async (call, active) => {
+          // Verify the displayed destination is still current, including the
+          // distinct “create a new Gist” case. Never use a restore/target draft.
+          const s = await readStatus(call)
+          if (!compatible(s)) throw fail('bad-response')
+          if (s.cloud.gistId !== expectedId || s.cloud.includeMachine !== expectedMachine) {
+            move({ name: 'backup', id: s.cloud.gistId, includeMachine: s.cloud.includeMachine })
+            notice('targetChanged'); return
+          }
+          if (expectedId !== null && !bareId(expectedId)) throw fail('bad-source')
+          sent = true
+          const r = await call('/gist/upload', { expectedTarget: expectedId, includeMachine: expectedMachine, ...token })
+          if (!bareId(r.ref?.id) || (expectedId !== null && r.ref.id !== expectedId) || !number(r.files) || !number(r.bytes)) throw fail('bad-response')
+          setBackupReceipt(r)
+          // The upload receipt confirms the host saved this id; retain the link
+          // even if the GET /status after it fails. Don't invent an upload time.
+          setStatus(old => ({ ...old, cloud: { ...old.cloud, gistId: r.ref.id } }))
+          move({ name: 'home' }, 'backup-receipt')
+          await afterWrite(call, active)
+        }, error => {
+          move({ name: 'backup', id: expectedId, includeMachine: expectedMachine })
+          const repair = sent && repairable(error)
+          const changed = error?.code === 'stale-plan'
+          const unknown = sent && !repair && !['stale-plan', 'notfound', 'too-large', 'busy', 'session-auth'].includes(error?.code)
+          if (changed || unknown) setUploadCheck(changed ? 'targetChanged' : 'uploadUncertain')
+          setIssue(changed ? { key: 'targetChanged' } : { error, repair, uploadUncertain: unknown })
+        })
+      }
+      function backup() {
+        if (targetId === null) return beginUpload(null, includeMachine)
+        move({ name: 'backup', id: targetId, includeMachine })
+      }
+      function openTarget() {
+        move({ name: 'target' }, 'target')
+        setTargetDraft(targetId ?? '')
+      }
+      function saveTarget(e) {
+        e.preventDefault()
+        if (locked || flight.current) return
+        const raw = targetDraft.trim()
+        const id = raw === '' ? null : sourceId(raw)
+        if (raw !== '' && !id) { focusNext.current = 'target'; setIssue({ error: fail('bad-source') }); return }
+        if (id === targetId) return
+        return run('busy', true, async (call, active) => {
+          const r = await call('/settings', { gistId: id ?? '' })
+          if (!r.cloud || r.cloud.gistId !== id || typeof r.cloud.includeMachine !== 'boolean') throw fail('bad-response')
+          setStatus(s => ({ ...s, cloud: r.cloud }))
+          // An old upload is not evidence that a newly linked Gist holds it.
+          setBackupReceipt(old => old?.ref.id === id ? old : null)
+          setTargetDraft(id ?? '')
+          setAnnouncement('targetSaved')
+          await afterWrite(call, active)
+        })
+      }
+      function toggleMachine(value) {
+        if (locked || flight.current) return
+        return run('busy', true, async (call, active) => {
+          const r = await call('/settings', { includeMachine: value })
+          if (r.cloud?.includeMachine !== value) throw fail('bad-response')
+          setStatus(s => ({ ...s, cloud: r.cloud }))
+          setAnnouncement('machineSaved')
+          await afterWrite(call, active)
+        })
+      }
+      function openPlugins() {
+        if (stale || flight.current) return
+        move({ name: 'plugins' })
+        return run('pluginsBusy', false, async call => {
+          const inventory = await call('/plugins')
+          if (!inventoryShape(inventory)) throw fail('bad-response')
+          move({ name: 'plugins', inventory })
+        })
+      }
+      function installPlugins() {
+        const reviewed = page.inventory
+        if (locked || flight.current || !installable(reviewed).length) return
+        let sent = false
+        move({ name: 'plugins' })
+        return run('installBusy', true, async call => {
+          // The standalone endpoint uses the local manifest, not a Gist plan.
+          // If the current inventory no longer matches the review, stop here.
+          const current = await call('/plugins')
+          if (!inventoryShape(current)) throw fail('bad-response')
+          const specs = x => x.missing.map(row => [row.name, row.resolvable, row.installSpec, row.note])
+          if (!verifiedInventory(current) || JSON.stringify(specs(current)) !== JSON.stringify(specs(reviewed))) {
+            move({ name: 'plugins', inventory: current }); notice('inventoryChanged'); return
+          }
+          sent = true
+          const expectedPackages = installable(reviewed).map(({ name, installSpec }) => ({ name, installSpec }))
+          const result = await call('/plugins/install', { expectedPackages })
+          if (typeof result.available !== 'boolean' || !Array.isArray(result.results)) throw fail('bad-response')
+          setInstallReceipt(result)
+          move({ name: 'plugins', showResult: true })
+        }, error => setIssue({ error, uncertain: sent && consumedPlanError(error) }))
+      }
+      function openUndo(expectedStamp = null) {
+        if (stale || flight.current) return
+        move({ name: 'undo' })
+        return run('localBusy', false, async call => {
+          const s = await readStatus(call)
+          if (expectedStamp && s.undo?.stamp !== expectedStamp) { move({ name: 'home' }, 'restore-receipt'); setIssue({ error: fail('stale-plan') }); return }
+          move({ name: 'undo', snapshot: s.undo })
+        })
+      }
+      function doUndo() {
+        if (locked || flight.current || !page.snapshot?.stamp) return
+        const reviewed = page.snapshot
+        let sent = false
+        move({ name: 'undo' })
+        return run('undoBusy', true, async (call, active) => {
+          const s = await readStatus(call)
+          if (!compatible(s) || s.undo?.stamp !== reviewed.stamp || s.undo.files !== reviewed.files) {
+            move({ name: 'home' }, 'more'); setIssue({ error: fail('stale-plan') }); return
+          }
+          sent = true
+          const r = await call('/undo', { expectedStamp: reviewed.stamp })
+          if (r.report?.stamp !== reviewed.stamp || !number(r.report.reverted)) throw fail('bad-response')
+          setRestoreReceipt({ mode: 'undo', reverted: r.report.reverted })
+          move({ name: 'home' }, 'restore-receipt')
+          await afterWrite(call, active)
+        }, error => setIssue({ error, uncertain: sent && consumedPlanError(error) }))
+      }
+
+      const alerts = () => h(React.Fragment, null,
+        uploadCheck && page.name !== 'backup' ? box('warning', h('p', { role: 'alert' }, t(uploadCheck)), h('div', { className: 'dpgsp-actions' }, btn('retry-status', t('statusRetry'), retryStatus, { disabled: !!busy }))) : null,
+        statusError ? h('div', { className: 'dpgsp-box dpgsp-warning', role: 'alert' },
+          h('strong', null, t(status ? 'refreshFailed' : 'hostMissing')), hint(errorText(t, statusError)),
+          h('div', { className: 'dpgsp-actions' }, btn('retry-status', t('statusRetry'), retryStatus, { disabled: !!busy }))) : null,
+        issue ? h('div', { className: `dpgsp-box dpgsp-${issue.error ? 'alert' : 'warning'}`, role: issue.error ? 'alert' : 'status' },
+          issue.error ? h('p', null, errorText(t, issue.error)) : null, issue.key ? h('p', null, t(issue.key)) : null,
+          issue.uncertain ? h('p', null, t('uncertain')) : null, issue.uploadUncertain ? h('p', null, t('uploadUncertain')) : null) : null,
+        busy ? h('p', { className: 'dpgsp-hint', role: 'status' }, t(busy)) : null)
+      const footer = (buttons, trust) => h('footer', { className: 'dpgsp-foot' }, trust ? note(trust, 'shield') : null,
+        h('div', { className: 'dpgsp-actions' }, ...buttons))
+      const isWrite = flight.current?.write === true
+      const cancel = (back = false) => btn('cancel', t(back ? 'back' : 'cancel'), () => home(), { disabled: isWrite })
+      const formId = `${uid}-form`
+      const showRepair = issue?.repair === true && (page.name === 'backup' || (page.name === 'preview' && page.mode !== 'local'))
+      const retryCloudRead = () => prepare(page.mode, page.id, takeToken())
+      const retryUpload = () => beginUpload(page.id, page.includeMachine, takeToken())
+      const repairView = retry => !showRepair ? null : h('form', { id: `${uid}-repair`, className: 'dpgsp-box', onSubmit: e => { e.preventDefault(); retry() } },
+        h('h3', null, t('repair')), hint(t('tokenHelp')),
+        h('div', { className: 'dpgsp-field' }, h('label', { htmlFor: `${uid}-token` }, t('tokenLabel')),
+          h('input', { type: 'password', className: 'dpgsp-input', id: `${uid}-token`, ref: tokenInput, autoComplete: 'off', spellCheck: false, autoCapitalize: 'none',
+            disabled: locked, 'aria-describedby': `${uid}-token-help` })),
+        h('p', { className: 'dpgsp-hint', id: `${uid}-token-help` }, t('tokenPrivacy'), ' ', t('authRetry')))
+      const retryProps = showRepair ? { type: 'submit', form: `${uid}-repair` } : {}
+      const goMore = (key, action, glyph) => btn(key, t(key), action, { kind: 'quiet', glyph, disabled: locked })
+      function menuView() {
+        return h('div', { className: 'dpgsp-menuwrap', onBlur: e => { if (!e.currentTarget.contains(e.relatedTarget)) setMenu(false) } },
+          btn('more', h(React.Fragment, null, t('more'), icon('chevron', 13)), () => { opener.current = 'more'; setMenu(v => !v) }, { kind: 'quiet', ref: moreButton, 'data-focus': 'more',
+            'aria-expanded': menu, 'aria-controls': menu ? `${uid}-more` : undefined, disabled: locked }),
+          menu ? h('nav', { id: `${uid}-more`, className: 'dpgsp-menulist', 'aria-label': t('more') },
+            goMore('local', () => move({ name: 'local' }), 'file'), goMore('configMode', () => openRestore('config'), 'down'),
+            goMore('install', openPlugins, 'pkg'), goMore('target', openTarget, 'arrow'), goMore('diagnostics', () => move({ name: 'diagnostics' }), 'info'),
+            status?.undo ? goMore('undo', () => openUndo(), 'shield') : null) : null)
+      }
+      const linkView = id => {
+        const href = gistLink({ id })
+        return href ? h('a', { className: 'dpgsp-link', href, target: '_blank', rel: 'noopener noreferrer', referrerPolicy: 'no-referrer' }, href) : isolated(id ?? t('newGist'))
+      }
+      const receiptStamp = restoreReceipt?.result?.report?.undoStamp
+      const receiptUndo = txt(receiptStamp) && receiptStamp === status?.undo?.stamp ? h('div', { className: 'dpgsp-actions' }, btn('undo-review', t('undo'), rootAction('restore', () => openUndo(receiptStamp)), { kind: 'quiet', disabled: locked })) : null
+      const frame = (content, foot) => h('section', { className: 'dpgsp-panel', 'aria-label': t('tab') },
+        h('div', { className: 'dpgsp-body dpgsp-stack' }, content), foot)
+      const intro = (key, subtitle) => h('header', null, title(t(key)), subtitle ? h('p', { className: 'dpgsp-intro' }, t(subtitle)) : null)
+      function homeView() {
+        const uploaded = targetId && backupReceipt?.ref?.id === targetId ? backupReceipt : null
+        const history = cloud?.lastUpload
+        const readyUrl = uploaded ? gistLink(uploaded.ref) : (bareId(targetId) && history?.gistId === targetId && txt(history.at) && number(history.files)
+          ? gistLink({ id: targetId }) : null)
+        const dropped = Array.isArray(uploaded?.dropped) ? uploaded.dropped.filter(row => txt(row?.name)) : []
+        const normal = status && compatible(status)
+        return frame(h('div', null,
+          h('header', { className: 'dpgsp-header' }, h('div', { className: 'dpgsp-titleline' }, h('span', { className: 'dpgsp-mark' }, icon('sync', 26)),
+            h('div', null, title(t('title')), h('p', { className: 'dpgsp-intro' }, t('intro')))), normal ? menuView() : null),
+          h('div', { className: 'dpgsp-section dpgsp-stack' },
+            !status || !compatible(status) ? h(React.Fragment, null, alerts(), status ? box('warning', h('p', null, t('staleHost')),
+              h('div', { className: 'dpgsp-actions' }, btn('retry-status', t('statusRetry'), retryStatus, { disabled: !!busy }))) : null) : h(React.Fragment, null,
+              readyUrl ? h(CopyReceipt, { key: readyUrl, url: readyUrl, t })
+                : h('p', { className: 'dpgsp-status' }, h('span', { className: 'dpgsp-dot', 'aria-hidden': true }), t(targetId ? 'linked' : 'noneYet')),
+              h('div', { className: 'dpgsp-actions dpgsp-homeactions' },
+                btn('backup', t('backup'), rootAction('backup', backup), { kind: 'primary', glyph: 'up', disabled: locked, 'data-focus': 'backup' }),
+                btn('restore', t('restore'), rootAction('restore', () => openRestore('standard')), { glyph: 'down', disabled: locked, 'data-focus': 'restore' })),
+              note([targetId ? t('overwriteHint') : null, t('privacy')].filter(Boolean).join(' ')),
+              alerts(),
+              dropped.length ? details(`${t('droppedDeps')} (${uploaded.droppedEntries ?? dropped.length})`, list(dropped, row => [isolated(row.name), mono(row.spec ?? '')])) : null,
+              h(RestoreReceipt, { receipt: restoreReceipt, t, undoButton: receiptUndo, locked, onRepreview: rootAction('restore', () => prepare('standard', restoreReceipt.result.ref.id)) })))))
+      }
+      function sourceView() {
+        return frame(h(React.Fragment, null, intro(page.mode === 'config' ? 'configMode' : 'restore', 'sourceIntro'),
+          page.mode === 'config' ? note(t('configScope'), 'shield') : null,
+          h('form', { id: formId, onSubmit: sourceSubmit, className: 'dpgsp-group' }, h('div', { className: 'dpgsp-field' },
+            h('label', { htmlFor: `${uid}-source` }, t('sourceLabel')), h('input', { id: `${uid}-source`, className: 'dpgsp-input', 'data-focus': 'source',
+              type: 'text', inputMode: 'url', autoComplete: 'off', spellCheck: false, autoCapitalize: 'none', placeholder: t('sourcePlaceholder'), value: sourceDraft, disabled: locked,
+              'aria-describedby': `${uid}-source-help`, 'aria-invalid': issue?.error?.code === 'bad-source' || undefined,
+              onChange: e => { setSourceDraft(e.target.value); setIssue(null) } })),
+            h('p', { id: `${uid}-source-help`, className: 'dpgsp-hint' }, t('newMachineStep1'))), alerts()),
+          footer([cancel(), btn('preview', t('next'), undefined, { kind: 'primary', type: 'submit', form: formId, disabled: locked || !sourceDraft.trim() })]))
+      }
+      function previewView() {
+        const p = page.plan
+        const local = page.mode === 'local'
+        const standard = page.mode === 'standard'
+        const canApply = actionable(p)
+        const n = installable(p?.plugins).length
+        const confirmLabel = standard && n > 0 ? countText(t, n === 1 ? 'confirmOne' : 'confirmCombined', n) : t(standard ? 'confirmFiles' : 'confirmConfig')
+        const buttons = [cancel(!!p && !canApply)]
+        if (p && canApply) buttons.push(btn('confirm', confirmLabel, confirmPlan, { kind: 'primary', disabled: locked }))
+        else if (!busy && (!p || (standard && !verifiedInventory(p.plugins)))) {
+          buttons.push(local ? btn('choose-again', t('chooseAgain'), () => move({ name: 'local' }, 'pick'), { kind: 'primary', disabled: locked })
+            : btn('preview', t('previewAgain'), showRepair ? undefined : retryCloudRead, { kind: 'primary', disabled: locked, ...retryProps }))
+        }
+        const changeSource = !local && !isWrite ? btn('change-source', t('changeSource'), () => sourcePage(page.mode), { kind: 'quiet' }) : null
+        return frame(h(React.Fragment, null, intro(standard ? 'previewTitle' : local ? 'localPreview' : 'configPreview'),
+          p ? h(PlanBody, { plan: p, t, changeSource }) : h('div', { className: 'dpgsp-source' }, `${t('source')}: `, isolated(local ? page.fileName : page.id), changeSource),
+          alerts(), repairView(retryCloudRead),
+          p && canApply ? hint(t('undoLimit')) : null),
+        footer(buttons, canApply ? t(standard ? 'standardTrust' : 'configTrust') : null))
+      }
+      function backupView() {
+        const brokenId = page.id !== null && !bareId(page.id)
+        const mustRead = uploadCheck !== null
+        const primary = mustRead ? btn('retry-status', t('statusRetry'), retryStatus, { kind: 'primary', disabled: !!busy })
+          : btn('confirm-backup', t(page.id === null ? 'backup' : 'uploadConfirm'), showRepair ? undefined : retryUpload,
+            { kind: 'primary', disabled: locked || brokenId, ...retryProps })
+        return frame(h(React.Fragment, null, intro(page.id === null ? 'backup' : 'overwriteReview', 'uploadScope'),
+          facts([[t('uploadTarget'), linkView(page.id)], [t('targetProfile'), status?.profile]]),
+          note([page.id ? t('visibilityKept') : null, t('privacy')].filter(Boolean).join(' '), 'shield'),
+          hint(t(page.includeMachine ? 'machineIncluded' : 'machineExcluded')),
+          status ? h(LocalInventory, { status, t }) : null, alerts(), repairView(retryUpload)), footer([cancel(), primary]))
+      }
+      function localView() {
+        return frame(h(React.Fragment, null, intro('local', 'localHint'),
+          h('p', null, t('configScope')), note(t(includeMachine ? 'machineIncluded' : 'machineExcluded')),
+          h('div', { className: 'dpgsp-actions' },
+            h('input', { type: 'file', hidden: true, accept: '.json,application/json', ref: fileInput, onChange: chooseFile }),
+            btn('pick-file', t('import'), () => fileInput.current?.click(), { kind: 'primary', glyph: 'file', disabled: locked, 'data-focus': 'pick' }),
+            !locked ? h('a', { className: 'dpgsp-btn', 'data-action': 'export', href: `${API}/export${includeMachine ? '?include=machine' : ''}`, download: true }, icon('up', 16), t('export')) : null), alerts()), footer([cancel(true)]))
+      }
+      function pluginsView() {
+        const p = page.inventory
+        const n = installable(p).length
+        const result = page.showResult ? installReceipt : null
+        const buttons = [cancel(!n)]
+        if (n) buttons.push(btn('confirm-install', countText(t, n === 1 ? 'installOne' : 'installConfirm', n), installPlugins, { kind: 'primary', disabled: locked }))
+        else if (!busy) buttons.push(btn('check-plugins', t('refreshInventory'), openPlugins, { disabled: locked }))
+        return frame(h(React.Fragment, null, intro('install', 'installHint'), alerts(),
+          p && !verifiedInventory(p) ? box('warning', h('strong', null, t('installUnknown')), hint(codeText(t, 'reason', p.reason))) : null,
+          verifiedInventory(p) ? h(React.Fragment, null, !p.missing.length ? box(null, h('p', null, t('allPresent'))) : null, h(PackageRows, { p, t })) : null,
+          result ? heading(t('pluginResults'), h(PluginReport, { p: result, t }), result.restart ? hint(t('restart')) : null) : null),
+          footer(buttons, n ? t('installTrust') : null))
+      }
+      function targetView() {
+        const raw = targetDraft.trim()
+        const nextId = sourceId(raw)
+        return frame(h(React.Fragment, null, intro('target', 'targetHint'), facts([[t('uploadTarget'), linkView(targetId)]]),
+          h('form', { id: formId, onSubmit: saveTarget, className: 'dpgsp-field' }, h('label', { htmlFor: `${uid}-target` }, t('targetInput')),
+            h('input', { id: `${uid}-target`, className: 'dpgsp-input', type: 'text', inputMode: 'url', autoComplete: 'off', autoCapitalize: 'none', spellCheck: false,
+              value: targetDraft, 'data-focus': 'target', 'aria-invalid': issue?.error?.code === 'bad-source' || undefined, disabled: locked, placeholder: t('targetEmpty'),
+              onChange: e => { setTargetDraft(e.target.value); setIssue(null); setAnnouncement('') } })),
+          !raw || nextId ? box(null, facts([[t('targetNew'), linkView(nextId)]]), nextId ? hint(t('targetWarning')) : null) : null,
+          alerts()), footer([cancel(), btn('save-target', t('saveTarget'), undefined, { type: 'submit', form: formId, kind: 'primary', disabled: locked || (raw ? nextId === targetId && nextId !== null : targetId === null) })]))
+      }
+      function diagnosticsView() {
+        const stamp = record => txt(record?.at) ? [formatTime(record.at), bareId(record.gistId) ? record.gistId : null,
+          number(record.files) ? countText(t, 'fileCount', record.files) : null].filter(Boolean).join(' · ') : t('never')
+        return frame(h(React.Fragment, null, intro('diagnostics', 'diagnosticsHint'),
+          facts([[t('targetProfile'), status.profile], [t('profileRoot'), status.root], [t('settingsFile'), cloud.settingsFile],
+            [t('configFiles'), `${status.counts.files} · ${formatBytes(status.counts.bytes)}`], [t('lastUpload'), stamp(cloud.lastUpload)], [t('lastSync'), stamp(cloud.lastSync)],
+            status.limits && [t('limits'), `${formatBytes(status.limits.maxBackupBytes)} / ${formatBytes(status.limits.gistMaxBytes)}`]]),
+          h('label', { className: 'dpgsp-check' }, h('input', { type: 'checkbox', checked: includeMachine, disabled: locked, onChange: e => toggleMachine(e.target.checked) }), t('includeMachine')),
+          h(LocalInventory, { status, t }), alerts()), footer([cancel(true), btn('retry-status', t('statusRetry'), retryStatus, { disabled: !!busy })]))
+      }
+      function undoView() {
+        const s = page.snapshot
+        const buttons = [cancel(!s)]
+        if (s?.stamp && s.files > 0) buttons.push(btn('confirm-undo', t('undoConfirm'), doUndo, { kind: 'primary', disabled: locked }))
+        else if (!busy) buttons.push(btn('retry-status', t('statusRetry'), retryStatus, { disabled: !!busy }))
+        return frame(h(React.Fragment, null, intro('undo'), s ? h(React.Fragment, null,
+          facts([[t('targetProfile'), status.profile], [t('undoWhen'), formatTime(s.createdAt)], [t('configFiles'), String(s.files)]]),
+          box('warning', h('strong', null, t('undoLimit')), h('p', null, t('undoScope')))) : page.snapshot === null ? hint(t('undoNone')) : null,
+          alerts()), footer(buttons))
+      }
+      const views = { home: homeView, source: sourceView, preview: previewView, backup: backupView, local: localView, plugins: pluginsView, target: targetView, diagnostics: diagnosticsView, undo: undoView }
+      const visible = !status || !compatible(status) ? 'home' : page.name
+      return h('div', { ref: root, className: 'dpgsp-root', 'data-view': visible, 'data-mode': page.mode,
+        onKeyDown: e => {
+          if (e.key !== 'Escape' || e.defaultPrevented || e.nativeEvent?.isComposing) return
+          if (menu) { e.preventDefault(); e.stopPropagation(); setMenu(false); moreButton.current?.focus() }
+          else if (page.name !== 'home' && !isWrite) { e.preventDefault(); e.stopPropagation(); home() }
+        } }, h('style', null, CSS), views[visible](),
+        h('p', { className: !announcement || announcement === 'reviewDone' ? 'dpgsp-sr' : 'dpgsp-hint', role: 'status', 'aria-live': 'polite', 'aria-atomic': true }, announcement ? t(announcement) : ''))
     }
-
-    function verifiedInstall(report) {
-      return hasCandidateList(report) && Array.isArray(report.results)
-        && Object.keys(OUTCOMES).every(key => Number.isSafeInteger(report.outcomeCounts?.[key]) && report.outcomeCounts[key] >= 0)
-        && report.results.every(item => item && Object.hasOwn(OUTCOMES, item.outcome) && typeof item.name === 'string')
-    }
-
-    function needsAttention(receipt) {
-      const report = receipt.plugins
-      return receipt.complete !== true || !verifiedInstall(report) || report.missing.length > 0
-        || report.outcomeCounts.failed > 0 || report.outcomeCounts.skipped > 0 || pendingScripts(report).length > 0
-        || report.results.some(item => item.outcome === 'skipped' || item.outcome === 'failed')
-        || (receipt.warnings?.length ?? 0) > 0
-    }
-
-    function pluginOutcome(report, t, showRestart = true) {
-      const scripts = pendingScripts(report)
-      const results = Array.isArray(report.results) ? report.results : []
-      const remaining = Array.isArray(report.missing) ? report.missing : []
-      return h('div', { className: 'dpgsp-sub' },
-        h('h4', { className: 'dpgsp-subtitle' }, t('pluginResultTitle')),
-        verifiedInstall(report) ? h('div', { className: 'dpgsp-hint' }, Object.entries(OUTCOMES)
-          .map(([key, label]) => `${t(label)} ${report.outcomeCounts[key]}`).join(' · '))
-          : h('div', { className: 'dpgsp-verdict dpgsp-warn' }, t('pluginResultUnknown'),
-            report.reason ? ` (${codeText('reason', report.reason, t)})` : null),
-        results.length ? h('ul', { className: 'dpgsp-list' }, results.map((item, index) => !item ? null : h('li', { key: index },
-          h('div', { className: 'dpgsp-package' },
-            h('strong', null, h('bdi', null, item.name), ' · ', Object.hasOwn(OUTCOMES, item.outcome) ? t(OUTCOMES[item.outcome]) : t('pluginResultUnknown')),
-            item.message ? h('span', null, item.outcome === 'skipped' ? codeText('note', item.message, t) : item.message) : null,
-          ),
-        ))) : null,
-        scripts.length ? h('div', { className: 'dpgsp-verdict dpgsp-warn' },
-          h('strong', null, t('pendingBuilds')), h('ul', { className: 'dpgsp-note-list' }, scripts.map(name => h('li', { key: name }, name))),
-          t('buildHint')) : null,
-        remaining.length ? h('div', { className: 'dpgsp-hint' }, `${t('stillMissing')}: ${remaining.map(entry => entry?.name).filter(Boolean).join(', ')}`) : null,
-        showRestart && report.restart === true ? h('strong', null, t('pluginsRestart')) : null,
-      )
-    }
-
-    function restoreOutcome(receipt, t, titleRef) {
-      const attention = needsAttention(receipt)
-      const report = receipt.report
-      return h('div', { className: 'dpgsp-sub' },
-        h('h4', { ref: titleRef, tabIndex: -1, className: `dpgsp-verdict dpgsp-${attention ? 'warn' : 'ok'}` },
-          attention ? t('restoreAttention') : t('restoreDone')),
-        h('div', null, `${t('previewSource')}: ${receipt.ref.id} · ${t('configRestored')}: ${report.restored}`),
-        h('div', { className: 'dpgsp-hint' }, configSummary(report.counts, t)),
-        hasFilePlan(report) ? configDetails(report, t) : null,
-        pluginOutcome(receipt.plugins, t, false),
-        receipt.warnings?.length ? h('div', { className: 'dpgsp-verdict dpgsp-warn' },
-          h('strong', null, t('warningsTitle')), h('ul', { className: 'dpgsp-note-list' }, receipt.warnings.map((item, index) => h('li', { key: index }, item)))) : null,
-        receipt.restart === true ? h('strong', null, t('restartHint')) : null,
-        attention ? h('div', { className: 'dpgsp-hint' }, t('retryHint')) : null,
-        h('div', { className: 'dpgsp-hint' }, t('undoLimit')),
-      )
-    }
-
-    /** The included/excluded file lists behind the toggle. */
-    function fileLists(status, t) {
-      const included = status.files.length === 0
-        ? h('div', { className: 'dpgsp-hint' }, t('filesEmpty'))
-        : h('ul', { className: 'dpgsp-list' },
-            status.files.map(file => h('li', { key: file.path },
-              h('span', { className: 'dpgsp-path' }, file.path),
-              h('span', { className: 'dpgsp-dim' }, formatBytes(file.bytes)),
-            )),
-          )
-      const excluded = status.excluded.length === 0
-        ? h('div', { className: 'dpgsp-hint' }, t('excludedEmpty'))
-        : h('ul', { className: 'dpgsp-list' },
-            status.excluded.map(entry => h('li', { key: entry.path },
-              h('span', { className: 'dpgsp-path' }, entry.path),
-              h('span', { className: 'dpgsp-dim' }, t(`code.${entry.code}`)),
-            )),
-          )
-      return h('div', null,
-        h('div', { className: 'dpgsp-hint' }, `${t('filesLabel')} (${status.files.length})`),
-        included,
-        h('div', { className: 'dpgsp-hint' }, `${t('excludedLabel')} (${status.excluded.length})`),
-        excluded,
-      )
-    }
-
     return {
       inject: ['slots', 'locale'],
       apply(ctx) {
         ctx.effect(() => ctx.locale.register(NS, DICT), `${NS}: dictionaries`)
         const t = ctx.locale.bind(NS)
         ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
-          name: 'settings.plugins.tab',
-          id: NS,
-          order: TAB_ORDER,
-          label: () => t('tab'),
-          locale: NS,
+          name: 'settings.plugins.tab', id: NS, order: TAB_ORDER, label: () => t('tab'), locale: NS,
         }, () => h(Panel, { ctx, t })))
       },
     }

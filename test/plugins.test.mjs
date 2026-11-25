@@ -532,10 +532,10 @@ useProfile(mixedProfile, home)
       && [...zh].filter(key => key.startsWith(`${prefix}.`)).length === [...en].filter(key => key.startsWith(`${prefix}.`)).length,
       `${[...zh].filter(key => key.startsWith(`${prefix}.`)).length} zh / ${[...en].filter(key => key.startsWith(`${prefix}.`)).length} en`)
   }
-  check('the auth error copy names the three token sources in Chinese',
-    ['DSH_GITHUB_TOKEN', 'gh auth login', '高级设置'].every(hint => blockOf('zh').includes(hint)))
-  check('and the new-machine checklist is in both dictionaries',
-    blockOf('zh').includes('newMachineStep1') && blockOf('en').includes('newMachineStep1'))
+  check('both locales offer access recovery without putting token entry on the home screen',
+    ['zh', 'en'].every(lang => ['tokenLabel:', 'tokenHelp:', 'DSH_GITHUB_TOKEN', 'gh auth login'].every(hint => blockOf(lang).includes(hint))))
+  check('both locales label the two main actions, copy receipt and distinct review scopes',
+    ['backup', 'restore', 'ready', 'copy', 'confirmCombined', 'confirmConfig', 'undoLimit'].every(key => zh.has(key) && en.has(key)))
 }
 
 // ---- 7. the token error is actionable ----------------------------------

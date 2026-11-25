@@ -85,7 +85,7 @@ check('the client half is shipped', shipped.includes('client.js'))
 check('the bundle patch is shipped', shipped.includes('cordis.patch.yml'))
 const packedManifest = JSON.parse(readFileSync(join(installed, 'package.json'), 'utf8'))
 check('the packed manifest names the independent fork and version',
-  packedManifest.name === 'dsh-profile-gist-sync-plus' && packedManifest.version === '1.2.0'
+  packedManifest.name === 'dsh-profile-gist-sync-plus' && packedManifest.version === '1.3.0'
   && packedManifest.repository.url === 'git+https://github.com/Xeonice/dsh-profile-gist-sync-plus.git')
 const patch = readFileSync(join(installed, 'cordis.patch.yml'), 'utf8')
 check('the bundle inserts the fork under its own row and module name',
@@ -137,7 +137,8 @@ check('and registers its route and tool', seen.routes === 1 && seen.tools === 1,
 const served = await serveHandler(handler)
 const status = await callRoute(served.base, `${BASE_PATH}/api/status`)
 check('the packed copy answers its own status route',
-  status.status === 200 && status.payload.profile === 'test', `${status.status} ${JSON.stringify(status.payload).slice(0, 120)}`)
+  status.status === 200 && status.payload.profile === 'test' && status.payload.version === packedManifest.version,
+  `${status.status}, profile ${status.payload.profile}, version ${status.payload.version}`)
 served.close()
 
 const clientSource = readFileSync(join(installed, 'client.js'), 'utf8')

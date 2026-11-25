@@ -2,7 +2,7 @@
  * The backup document itself: what it carries, what it refuses, and what a
  * restore would do — all on a throwaway profile built by the harness.
  */
-import { existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createReport, makeProfile, tempDir, useProfile, backupDocument } from './harness.mjs'
 
@@ -67,6 +67,7 @@ check('a credential store inside an incoming document is dropped, not refused',
 const incoming = backupDocument('other', [
   { path: 'data/note.json', lines: ['{"hello":"from the cloud"}'] },
   { path: 'data/fresh.json', lines: ['{"new":true}'] },
+  { path: '.npmrc', lines: readFileSync(join(profile, '.npmrc'), 'utf8').split('\n') },
 ])
 // A manifest from another machine: it adds a dependency and a bundle, and a
 // merge must keep this machine's plugin as well.
@@ -87,6 +88,8 @@ check('and the plan says which dependency and bundle it adds',
 
 // ---- applying and undoing ----------------------------------------------
 const before = readFileSync(join(profile, 'data', 'note.json'), 'utf8')
+const identicalPath = join(profile, '.npmrc')
+const beforeInode = statSync(identicalPath).ino
 const { report, undoDir } = backup.applyRestore(incoming)
 check('the restore reports what it did', report.files.length === plan.files.length, JSON.stringify(report.counts))
 check('the cloud content was written', readFileSync(join(profile, 'data', 'note.json'), 'utf8').includes('from the cloud'))
@@ -95,8 +98,17 @@ check('the local-only file survived', existsSync(join(profile, 'cordis.yml')))
 check('a manifest merge keeps the local plugin', readFileSync(join(profile, 'package.json'), 'utf8').includes('some-plugin'))
 check('a manifest merge takes in the cloud plugin too', readFileSync(join(profile, 'package.json'), 'utf8').includes('cloud-plugin'))
 check('the changed bytes were snapshotted first', existsSync(undoDir) && backup.undoStatus() !== null)
-
+const snapshot = backup.undoStatus()
+check('identical files are not replaced or included in the undo scope', status['.npmrc'] === 'identical'
+  && statSync(identicalPath).ino === beforeInode && !existsSync(join(undoDir, 'files', '.npmrc'))
+  && snapshot.files === plan.counts.add + plan.counts.overwrite + plan.counts.merge && report.restored === snapshot.files
+  && report.undoStamp === snapshot.stamp)
+const repeat = backup.applyRestore(incoming)
+check('an entirely unchanged restore creates no undo point, preserving the preceding real one',
+  repeat.report.restored === 0 && repeat.undoDir === null && repeat.report.undoStamp === null && backup.undoStatus().stamp === snapshot.stamp)
+writeFileSync(identicalPath, 'registry=https://edited-later.invalid/\n')
 const undone = backup.undoLastRestore()
+check('undo leaves later edits to a previously identical file alone', readFileSync(identicalPath, 'utf8') === 'registry=https://edited-later.invalid/\n')
 check('undo reports the files it reverted', undone.reverted > 0, JSON.stringify(undone))
 check('undo restored the previous bytes', readFileSync(join(profile, 'data', 'note.json'), 'utf8') === before)
 check('undo removed the added file', !existsSync(join(profile, 'data', 'fresh.json')))
