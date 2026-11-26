@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Multi-device config sync",
-    "description": "Back up your DSH profile to a GitHub Gist. Open Multi-device config sync in the Settings sidebar to preview file changes and missing plugins before confirming a restore. Use a trusted Gist; undo restores configuration only, not packages."
+    "description": "Back up your DSH profile to a GitHub Gist. Open Multi-device config sync in the Settings sidebar to preview file changes and plugin sources. After confirmation, follow the restore steps, package progress and individual results. Use a trusted Gist; undo restores configuration only, not packages."
   },
   "tab": "Multi-device config sync",
   "title": "Multi-device config sync",
@@ -19,6 +19,6 @@
   "newMachineStep1": "Install Multi-device config sync in the target profile.",
   "newMachineStep2": "Choose Restore from backup and use the linked backup or paste a trusted link from another machine.",
   "newMachineStep3": "Review file changes, plugin sources and items that need manual setup. Address GitHub access only if prompted.",
-  "newMachineStep4": "Confirm only if you trust the plan. Review the results, handle pending builds separately and restart DSH as indicated.",
+  "newMachineStep4": "Confirm only if you trust the plan. Follow progress and read the receipt in place. Review pending builds separately and restart DSH if indicated.",
   "tokenHelp": "Use the token field, DSH_GITHUB_TOKEN / GITHUB_TOKEN on the host, or a signed-in gh CLI. Do not share tokens or Gist links."
 }

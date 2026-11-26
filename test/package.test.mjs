@@ -85,7 +85,7 @@ check('the client half is shipped', shipped.includes('client.js'))
 check('the bundle patch is shipped', shipped.includes('cordis.patch.yml'))
 const packedManifest = JSON.parse(readFileSync(join(installed, 'package.json'), 'utf8'))
 check('the tarball identifies the public npm release and its source repository',
-  packedManifest.name === 'dsh-multi-device-config-sync' && packedManifest.version === '1.5.0'
+  packedManifest.name === 'dsh-multi-device-config-sync' && packedManifest.version === '1.6.0'
   && packedManifest.publishConfig.access === 'public' && packedManifest.publishConfig.registry === 'https://registry.npmjs.org/'
   && packedManifest.repository.url === 'git+https://github.com/Xeonice/dsh-profile-gist-sync-plus.git')
 check('installing the public bundle introduces no dependencies and runs no lifecycle scripts',
@@ -104,7 +104,10 @@ check('both icon forms and the README are shipped', ['icon.svg', 'assets/icon-25
 check('the tarball does not advertise or include upstream screenshots', !shipped.some(file => /screenshot/i.test(file)))
 check('the original author and MIT licence travel with it', packedManifest.author === 'Meta-Virgo' && packedManifest.license === 'MIT'
   && readFileSync(join(installed, 'LICENSE'), 'utf8').includes('Copyright (c) 2026 Meta-Virgo'))
-check('the checks travel with it, so a reader can run them', shipped.some(file => file.startsWith('test/')))
+check('the checks travel with it, so a reader can run them',
+  readdirSync(join(PLUGIN, 'test')).filter(name => name.endsWith('.mjs')).every(name => shipped.includes(`test/${name}`)))
+check('design mockups, generated previews and release archives stay out of the runtime package',
+  !shipped.some(file => /(?:^|\/)(?:design-previews|release-artifacts|prototype\.html|restore-progress\.png)(?:\/|$)|\.tgz$/i.test(file)))
 if (packed.size !== null) check(`the tarball is below 200 KiB (${packed.size} bytes)`, packed.size < 200 * 1024)
 check('no working state leaked into the package',
   !shipped.some(file => file.includes('.dsh-config-sync') || file.includes('node_modules') || file.endsWith('settings.json')),

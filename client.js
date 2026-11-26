@@ -104,7 +104,51 @@ window.__ModuleLoader__.load({
         noInstall: '此操作不安装插件。',
         reviewDone: '预览已就绪，尚未执行恢复。',
         restoreDone: '恢复完成',
-        restoreUnverified: '上次恢复的结果尚未核实',
+        restoreUnverified: '未收到可核实的恢复回执',
+        progressTitle: '恢复到本机',
+        inProgress: '恢复中',
+        waitingReceipt: '正在恢复，等待结果',
+        waitHint: '收到回执后，结果会显示在这里。',
+        waitMeter: '正在等待恢复回执，进度未知',
+        noRepeat: '请等待恢复回执，不要重复发起恢复。',
+        restoreSteps: '本次恢复步骤',
+        stageCheck: '核对恢复清单',
+        stageWrite: '写入配置文件',
+        stageInstall: '安装缺失插件',
+        verifyPackages: '核对安装结果',
+        verifyFiles: '核对写入结果',
+        verifyLocal: '核对本机状态',
+        checked: '已核对',
+        stageActive: '进行中',
+        stagePending: '等待中',
+        awaitingCheck: '等待核对',
+        checkHint: '正在核对已确认的恢复范围。',
+        writeHint: '正在处理配置文件，尚未收到写入回执。',
+        verifyHint: '正在核对本机插件清单，以最终回执为准。',
+        verifyWriteHint: '正在比对配置写入回执与已确认的文件清单。',
+        processed: '已处理 %n / %m 个',
+        approvedMeter: '本次批准的插件中已有处理结果的数量',
+        meterHint: '只数本次批准且已有结果的插件，失败或跳过也计入；不是安装成功数。',
+        currentPackage: '正在安装',
+        finished: '已完成',
+        needsAttention: '需处理',
+        needsCheck: '待核实',
+        partialTitle: '配置已恢复，仍缺 %n 个插件',
+        buildTitle: '配置已恢复，构建脚本待审',
+        unknownPluginsTitle: '配置已恢复，插件结果待核实',
+        missingOnly: '仍缺 %n 个插件',
+        buildsOnly: '插件构建脚本待审',
+        unknownOnly: '插件结果待核实',
+        otherAttention: '本次恢复仍有事项需处理',
+        inspectLocal: '核对本机状态',
+        inspectConfigHint: '请比对本机配置与恢复前的清单。本次更改数尚未核实。',
+        inspectPackagesHint: '请同时到「插件」页核对实际安装情况。',
+        unknownUndo: '尚未取得与本次恢复匹配的撤销记录。「更多」里的上次恢复记录可能属于更早的操作。',
+        readOnlyPreview: '重新预览只会比对当前状态，不会写入配置、安装插件或批准脚本。',
+        inspectInstall: '请到「插件」页核对此包的安装状态和来源，再重新预览。',
+        restartConfig: '重启 DSH 后，已写入的配置生效。',
+        restartPackages: '插件管理器提示重启 DSH，以应用已安装项的更改。',
+        restartLimit: '重启不会补装缺失的插件，也不会批准构建脚本。',
         restoreAttention: '配置已恢复，仍有事项需处理',
         changedCount: '已更改 %n 个配置文件',
         installedCount: '已安装 %n 个插件',
@@ -310,7 +354,51 @@ window.__ModuleLoader__.load({
         noInstall: 'No plugins will be installed.',
         reviewDone: 'Preview ready. No restore has been performed.',
         restoreDone: 'Restore complete',
-        restoreUnverified: 'Last restore result not verified',
+        restoreUnverified: 'Restore receipt not verified',
+        progressTitle: 'Restore to this machine',
+        inProgress: 'Restoring',
+        waitingReceipt: 'Waiting for the restore result',
+        waitHint: 'The result will appear here when the host sends a receipt.',
+        waitMeter: 'Waiting for the restore receipt; progress unknown',
+        noRepeat: 'Wait for the receipt. Do not submit the restore again.',
+        restoreSteps: 'Steps in this restore',
+        stageCheck: 'Check the reviewed plan',
+        stageWrite: 'Write configuration files',
+        stageInstall: 'Install missing plugins',
+        verifyPackages: 'Check installation results',
+        verifyFiles: 'Check the file changes',
+        verifyLocal: 'Check local state',
+        checked: 'Checked',
+        stageActive: 'In progress',
+        stagePending: 'Waiting',
+        awaitingCheck: 'Awaiting verification',
+        checkHint: 'Checking the scope you confirmed.',
+        writeHint: 'Processing configuration files. The write has not yet been acknowledged.',
+        verifyHint: 'Checking the local plugin inventory. The final receipt will show the result.',
+        verifyWriteHint: 'Comparing the configuration write receipt with the reviewed file list.',
+        processed: 'Processed %n / %m',
+        approvedMeter: 'Approved plugins with a processing outcome',
+        meterHint: 'Counts only approved plugins with an outcome, including failures and skips. This is not a count of successful installations.',
+        currentPackage: 'Installing',
+        finished: 'Complete',
+        needsAttention: 'Needs attention',
+        needsCheck: 'Not verified',
+        partialTitle: 'Configuration restored; plugins still missing: %n',
+        buildTitle: 'Configuration restored; build scripts await review',
+        unknownPluginsTitle: 'Configuration restored; plugin results not verified',
+        missingOnly: 'Plugins still missing: %n',
+        buildsOnly: 'Plugin build scripts await review',
+        unknownOnly: 'Plugin results not verified',
+        otherAttention: 'Some items still need attention',
+        inspectLocal: 'Check local state',
+        inspectConfigHint: 'Compare local configuration with the reviewed file list. The number of changes has not been verified.',
+        inspectPackagesHint: 'Also check which packages are actually installed on the Plugins page.',
+        unknownUndo: 'No undo record has been matched to this restore. The last record under More may belong to an earlier operation.',
+        readOnlyPreview: 'A new preview compares current state. It does not rewrite files, install plugins or approve scripts.',
+        inspectInstall: 'Check this package and its install source on the Plugins page, then preview again.',
+        restartConfig: 'Restart DSH for the restored configuration to take effect.',
+        restartPackages: 'Restart DSH to apply the installed package changes.',
+        restartLimit: 'Restarting does not install missing plugins or approve build scripts.',
         restoreAttention: 'Configuration restored; some items need attention',
         changedCount: 'Configuration files changed: %n',
         installedCount: 'Plugins installed: %n',
@@ -519,6 +607,36 @@ window.__ModuleLoader__.load({
 .dpgsp-facts dd { min-width:0; text-align:end; }
 .dpgsp-root .dpgsp-link { color:var(--dsw-alias-link,var(--accent)); text-underline-offset:2px; }
 .dpgsp-copy-feedback { margin-top:8px; padding-top:8px; }
+.dpgsp-restore-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:6px 12px; }
+.dpgsp-restore-head .dpgsp-mark { border-radius:var(--dsw-radius-md,12px); width:36px; height:36px; }
+.dpgsp-restore-head h2 { font-size:17px; font-weight:600; line-height:24px; }
+.dpgsp-badge { align-self:center; border:.5px solid var(--line); border-radius:99px; padding:0 9px; font-size:12px; }
+.dpgsp-restore-head[data-tone=active] :is(.dpgsp-mark,.dpgsp-badge) { color:var(--accent); }
+.dpgsp-restore-head[data-tone=good] :is(.dpgsp-mark,.dpgsp-badge) { color:var(--good); }
+.dpgsp-restore-head[data-tone=attention] :is(.dpgsp-mark,.dpgsp-badge) { color:var(--warn); }
+.dpgsp-timeline { list-style:none; margin:0; padding-inline:0; }
+.dpgsp-step { display:grid; grid-template-columns:20px minmax(0,1fr); gap:8px; position:relative; }
+.dpgsp-step + .dpgsp-step { margin-top:14px; }
+.dpgsp-step:not(:last-child)::before { content:''; position:absolute; inset-inline-start:9px; top:21px; bottom:-13px; border-inline-start:1px solid var(--line); }
+.dpgsp-step-mark { display:grid; place-items:center; align-self:start; height:20px; color:var(--muted); }
+.dpgsp-step-mark:empty::before { content:''; width:12px; height:12px; border:1px solid currentColor; border-radius:50%; corner-shape:round; }
+.dpgsp-step[data-state=done] .dpgsp-step-mark { color:var(--good); }
+.dpgsp-step[aria-current=step] :is(.dpgsp-step-mark,.dpgsp-step-line) { color:var(--accent); }
+.dpgsp-step[aria-current=step] .dpgsp-step-mark::before { background:currentColor; box-shadow:inset 0 0 0 2px var(--paper); }
+.dpgsp-step-line { display:flex; justify-content:space-between; align-items:baseline; gap:0 8px; flex-wrap:wrap; }
+.dpgsp-step-line > :last-child { font-size:12px; }
+.dpgsp-step[data-state=pending] .dpgsp-step-line { color:var(--muted); }
+.dpgsp-meterbox { display:grid; gap:5px; margin-top:6px; border:.5px solid var(--line); border-radius:var(--dsw-radius-sm,8px); padding:8px 12px; background:var(--dsw-alias-bg-layer-1); }
+.dpgsp-meterbox strong { color:var(--accent); font-variant-numeric:tabular-nums; }
+.dpgsp-body > .dpgsp-issue { padding:9px 12px; border:.5px solid var(--line); border-radius:var(--dsw-radius-sm,8px); background:var(--dsw-alias-state-warn-tertiary,var(--hover)); }
+.dpgsp-issue .dpgsp-icon { color:var(--warn); }
+.dpgsp-meter { height:7px; border-radius:99px; background:var(--edge); overflow:hidden; }
+.dpgsp-fill { display:block; height:100%; border-radius:inherit; background:var(--accent); }
+/* Waiting stripes do not encode a duration, stage, or percentage. */
+.dpgsp-meter.dpgsp-indeterminate { background:repeating-linear-gradient(110deg,var(--edge) 0 8px,var(--hover) 8px 16px); background-size:34px 100%; animation:dpgsp-wait 2.6s linear infinite; }
+@keyframes dpgsp-wait { to { background-position:34px 0; } }
+@media (prefers-reduced-motion:reduce) { .dpgsp-meter.dpgsp-indeterminate { animation:none; } }
+@media (forced-colors:active) { .dpgsp-meter { outline:1px solid; } .dpgsp-fill { border-block-start:7px solid; } }
 .dpgsp-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
 @container (max-width:470px) {
   .dpgsp-homefoot { grid-template-columns:auto minmax(0,1fr); }
@@ -582,20 +700,80 @@ window.__ModuleLoader__.load({
       return Object.hasOwn(DICT.en, key) ? t(key) : typeof code === 'string' ? code : ''
     }
     const errorText = (t, error) => Object.hasOwn(DICT.en, `err.${error?.code}`) ? t(`err.${error.code}`) : t('err.other')
-    async function api(path, body, signal) {
-      let response
+    const object = value => !!value && typeof value === 'object' && !Array.isArray(value)
+    const NDJSON = 'application/x-ndjson'
+    const RESTORE_ROUTES = { standard: '/sync/install', config: '/config/restore', local: '/restore' }
+    async function request(path, body, signal, accept) {
       try {
-        response = await fetch(`${API}${path}`, { method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin', redirect: 'error', cache: 'no-store', signal,
-          ...(body === undefined ? {} : { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }) })
+        return await fetch(`${API}${path}`, { method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin', redirect: 'error', cache: 'no-store', signal,
+          ...(body === undefined ? {} : { headers: { 'content-type': 'application/json', ...(accept ? { Accept: accept } : {}) }, body: JSON.stringify(body) }) })
       } catch (error) { throw signal?.aborted ? error : fail('network') }
+    }
+    function responseError(data) {
+      // An origin/login rejection from DSH is not a reason to ask for a GitHub token.
+      const localDenial = data?.code === 'auth' && /^(?:DSH refused|refused: the Host)/i.test(data?.error ?? '')
+      return fail(localDenial ? 'session-auth' : txt(data?.code) ? data.code : 'other')
+    }
+    async function readJson(response) {
       const data = await response.json().catch(() => null)
-      if (!response.ok) {
-        // An origin/login rejection from DSH is not a reason to ask for a GitHub token.
-        const localDenial = data?.code === 'auth' && /^(?:DSH refused|refused: the Host)/i.test(data?.error ?? '')
-        throw fail(localDenial ? 'session-auth' : data?.code ?? 'other')
-      }
-      if (!data || typeof data !== 'object' || Array.isArray(data)) throw fail('bad-response')
+      if (!response.ok) throw responseError(data)
+      if (!object(data)) throw fail('bad-response')
       return data
+    }
+    async function api(path, body, signal) { return readJson(await request(path, body, signal)) }
+
+    // Only reviewed confirmations negotiate streaming, on the original request.
+    // In particular there is no capability probe, replacement POST, or cloud read.
+    async function confirmReviewed(plan, signal, onProgress = () => {}) {
+      if (!Object.hasOwn(RESTORE_ROUTES, plan?.mode) || !txt(plan.planId)) throw fail('bad-response')
+      const streaming = typeof TextDecoder === 'function' && typeof ReadableStream === 'function'
+        && typeof ReadableStream.prototype.getReader === 'function' && typeof Response === 'function' && 'body' in Response.prototype
+      const response = await request(RESTORE_ROUTES[plan.mode], { planId: plan.planId, confirm: true }, signal, streaming ? NDJSON : null)
+      const type = response.headers?.get('content-type')?.split(';')[0].trim().toLowerCase()
+      let result
+      if (type === NDJSON) {
+        if (!streaming || typeof response.body?.getReader !== 'function') throw fail('bad-response')
+        const scope = progressScope(plan)
+        let last = null
+        result = await readFrames(response.body, frame => {
+          const next = checkedProgress(scope, frame, last)
+          if (next) last = next // keep the monotonic floor even across unusable frames
+          onProgress(response.ok ? next : null)
+        })
+        if (!response.ok) throw fail('bad-response')
+      } else result = await readJson(response) // Older hosts ignore Accept. Never submit again.
+      if (!validRestore(result, plan)) throw fail('bad-response')
+      return result
+    }
+    async function readFrames(body, progress) {
+      const reader = body.getReader()
+      const decoder = new TextDecoder('utf-8', { fatal: true })
+      let buffer = '', terminal = null
+      // Bound a single unterminated line, not the number of packages or chunks.
+      const maxLine = 8 * 1024 * 1024
+      function line(text) {
+        if (text.length > maxLine) throw fail('bad-response')
+        if (!text.trim()) return
+        if (terminal) throw fail('bad-response') // no ambiguous second outcome or trailing event
+        const frame = JSON.parse(text)
+        if (frame?.type === 'progress') progress(frame)
+        else if ((frame?.type === 'result' && object(frame.result)) || (frame?.type === 'error' && txt(frame.code) && txt(frame.error))) terminal = frame
+        else throw fail('bad-response')
+      }
+      try {
+        for (;;) {
+          const { done, value } = await reader.read()
+          buffer += done ? decoder.decode() : decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop()
+          for (const text of lines) line(text)
+          if (buffer.length > maxLine) throw fail('bad-response')
+          if (done) { line(buffer); break } // also accept an intact last record at EOF
+        }
+      } catch { throw fail('bad-response') } finally { reader.releaseLock() }
+      if (!terminal) throw fail('bad-response')
+      if (terminal.type === 'error') throw responseError(terminal)
+      return terminal.result
     }
     function validStatus(s) {
       return txt(s?.profile) && number(s.counts?.files) && number(s.counts.bytes)
@@ -618,10 +796,11 @@ window.__ModuleLoader__.load({
     const verifiedInventory = p => p?.available === true && names(p.installed) && Array.isArray(p.missing) && p.missing.every(entry =>
       txt(entry?.name) && typeof entry.resolvable === 'boolean' && (entry.spec == null || typeof entry.spec === 'string')
       && (entry.resolvable ? txt(entry.installSpec) : entry.installSpec === null))
+      && new Set([...p.installed, ...p.missing.map(row => row.name)]).size === p.installed.length + p.missing.length
     const installable = p => verifiedInventory(p) ? p.missing.filter(row => row.resolvable) : []
     const inventoryShape = p => p?.available === false || verifiedInventory(p)
     function validCloudPlan(p, mode, id) {
-      if (!bareId(p?.ref?.id) || p.ref.id !== id || !filePlan(p.preview)) return false
+      if (!['standard', 'config'].includes(mode) || !bareId(p?.ref?.id) || p.ref.id !== id || !filePlan(p.preview) || (p.mode !== undefined && p.mode !== mode)) return false
       if (mode === 'config') return txt(p.planId) && p.plugins == null
       return p.plugins?.available === false ? p.planId === null : verifiedInventory(p.plugins) && txt(p.planId)
     }
@@ -629,10 +808,82 @@ window.__ModuleLoader__.load({
       return !!p && (p.mode !== 'standard' || verifiedInventory(p.plugins)) && (changes(p.preview) > 0 || installable(p.plugins).length > 0)
     }
     function validRestore(r, plan) {
-      if (!filePlan(r?.report) || !number(r.report.restored)) return false
-      if (plan.mode === 'local') return true
-      if (r.ref?.id !== plan.ref.id || typeof r.restart !== 'boolean' || !names(r.warnings ?? [])) return false
-      return plan.mode === 'config' || (typeof r.complete === 'boolean' && typeof r.plugins?.available === 'boolean')
+      const p = plan?.preview, report = r?.report
+      if (!Object.hasOwn(RESTORE_ROUTES, plan?.mode) || !filePlan(p) || !filePlan(report) || !number(report.restored)
+          || report.restored !== changes(report) || report.profile !== p.profile || report.root !== p.root || report.sourceProfile !== p.sourceProfile
+          || report.createdAt !== p.createdAt || report.files.length !== p.files.length || !names(r.warnings ?? []) || (r.mode !== undefined && r.mode !== plan.mode)) return false
+      if (!report.files.every((row, i) => row.path === p.files[i].path && row.status === p.files[i].status)) return false
+      if (plan.mode === 'local') return r.ref == null && r.plugins == null && r.complete == null
+      if (!bareId(plan.ref?.id) || r.ref?.id !== plan.ref.id || typeof r.restart !== 'boolean') return false
+      if (plan.mode === 'config') return r.plugins == null && r.complete == null
+      if (typeof r.complete !== 'boolean') return false
+      if (r.plugins?.available === false) return !r.complete
+      if (!verifiedReport(r.plugins) || !verifiedInventory(plan.plugins)) return false
+      const approved = new Map(installable(plan.plugins).map(row => [row.name, row.installSpec]))
+      const declared = new Set([...plan.plugins.installed, ...plan.plugins.missing.map(row => row.name)])
+      const observed = [...r.plugins.installed, ...r.plugins.missing.map(row => row.name)]
+      return observed.length === declared.size && observed.every(name => declared.has(name))
+        && r.plugins.results.every(row => declared.has(row.name) && (row.outcome === 'skipped' ||
+          (approved.has(row.name) && (row.installSpec === undefined || row.installSpec === approved.get(row.name)))))
+        && (!r.complete || !incomplete(r.plugins))
+    }
+
+    // The stream is scoped by the selected POST and the reviewed plan, not by
+    // identifiers supplied by an event. No progress frame is a restore receipt.
+    function progressScope(plan) {
+      const approved = new Set(installable(plan.plugins).map(row => row.name))
+      return { mode: plan.mode, approved, fileLimit: changes(plan.preview) }
+    }
+    const STAGES = ['check', 'write', 'install', 'verify']
+    function checkedProgress(scope, frame, last) {
+      if (!scope || !Object.hasOwn(RESTORE_ROUTES, scope.mode) || frame?.type !== 'progress') return null
+      const { stage, files, processed, total, current } = frame
+      const rank = STAGES.indexOf(stage)
+      if (rank < 0 || (last && rank < STAGES.indexOf(last.stage))) return null
+      const late = stage === 'install' || stage === 'verify'
+      const allowed = ['type', 'stage', ...(late ? ['files', 'processed', 'total'] : []), ...(stage === 'install' ? ['current'] : [])]
+      if (Object.keys(frame).some(key => !allowed.includes(key))) return null
+      if (!late) return { stage }
+      if (!number(files) || files > scope.fileLimit || (last?.files !== undefined && files !== last.files)) return null
+      if (stage === 'install' || processed !== undefined || total !== undefined) {
+        if (scope.mode !== 'standard' || !number(total) || total !== scope.approved.size || !number(processed) || processed > total || processed < (last?.processed ?? 0)) return null
+        if (stage === 'install') {
+          if (!total || (current !== null && (!scope.approved.has(current) || processed === total))) return null
+          return { stage, files, processed, total, current }
+        }
+        if (total > 0) return { stage, files, processed, total }
+      }
+      return { stage, files }
+    }
+    function restoreDestination(plan, result, error) {
+      const { mode, fileName } = plan, id = plan.ref?.id, profile = plan.preview.profile
+      // Even a busy/expired plan loses its local confirmation. The only path
+      // back to a write is a fresh, user-requested read-only preview.
+      if (error && ['stale-plan', 'busy'].includes(error.code)) return { name: 'preview', mode, id, fileName }
+      const receipt = error ? { mode: 'unknown', reviewedMode: mode, profile, source: id ?? fileName, error }
+        : { mode, profile, result, fileName, restart: mode === 'local' ? result.report.restored > 0 : result.restart }
+      return { name: 'receipt', mode, receipt }
+    }
+    function progressPage(plan) {
+      return { name: 'progress', mode: plan.mode, profile: plan.preview.profile,
+        hasPackages: plan.mode === 'standard' && installable(plan.plugins).length > 0, step: null }
+    }
+    async function runReviewed(plan, signal, { active, progress, settle, refresh }) {
+      let result
+      try { result = await confirmReviewed(plan, signal, step => { if (active()) progress(step) }) }
+      catch (error) {
+        if (active()) settle(restoreDestination(plan, null, error), error)
+        return
+      }
+      if (!active()) return
+      settle(restoreDestination(plan, result))
+      // Outside the confirmation catch: even a broken /status cannot turn a
+      // verified write into a lost receipt or send another confirmation.
+      await refresh()
+    }
+    function matchingUndo(receipt, status) {
+      const report = receipt?.result?.report, stamp = report?.undoStamp
+      return txt(stamp) && receipt.profile === status?.profile && stamp === status.undo?.stamp && report.restored === status.undo.files ? stamp : null
     }
     function verifiedReport(p) {
       return verifiedInventory(p) && Array.isArray(p.results) && p.results.every(row => txt(row?.name) && Object.hasOwn(OUTCOMES, row.outcome) && names(row.pendingBuilds))
@@ -739,36 +990,90 @@ window.__ModuleLoader__.load({
           txt(r.message) ? hint(r.outcome === 'skipped' ? codeText(t, 'note', r.message) : r.message) : null)]) : null,
         remaining.length ? h('p', null, `${t('stillMissing')}: `, remaining.map(r => r.name).join(', ')) : null)
     }
-    function RestoreReceipt({ receipt, t, undoButton, onRepreview, locked }) {
-      if (!receipt) return null
-      const resultTitle = (key, glyph) => h('h3', { tabIndex: -1, 'data-focus': 'restore-receipt', className: 'dpgsp-line' }, icon(glyph), t(key))
-      if (receipt.mode === 'unknown') return frame(h(React.Fragment, null, resultTitle('restoreUnverified', 'info'),
-        facts([[t('source'), receipt.local ? isolated(receipt.source) : t('gistSource')]]), note(t('uncertain')),
-        !receipt.local ? details(t('resultDetails'), facts([[t('source'), mono(receipt.source)]])) : null), undoButton ? footer([undoButton]) : null)
-      if (receipt.mode === 'undo') return frame(h(React.Fragment, null, resultTitle('undoDone', 'check'),
-        h('p', null, countText(t, 'reverted', receipt.reverted), ' ', t('undoLimit'))))
+    function restoreHeader(text, badge, tone, glyph, profile, t, focus) {
+      return h('header', { className: 'dpgsp-restore-head', 'data-tone': tone },
+        h('div', { className: 'dpgsp-identity' }, h('span', { className: 'dpgsp-mark' }, icon(glyph, 20)),
+          h('div', null, h('h2', { tabIndex: -1, 'data-focus': focus }, text), hint(h(React.Fragment, null, t('localProfile'), ' · ', isolated(profile))))),
+        h('span', { className: 'dpgsp-badge' }, t(badge)))
+    }
+    const tally = (t, step) => countText(t, 'processed', step.processed).replace('%m', String(step.total))
+    const progressStages = hasPackages => hasPackages ? STAGES : ['check', 'write', 'verify']
+    const stageLabel = (stage, page) => ({ check: 'stageCheck', write: 'stageWrite', install: 'stageInstall',
+      verify: page.mode !== 'standard' ? 'verifyFiles' : page.hasPackages ? 'verifyPackages' : 'verifyLocal' })[stage]
+    function progressStatus(page, t) {
+      const s = page.step
+      if (!s) return t('waitingReceipt')
+      return [t(stageLabel(s.stage, page)), s.total > 0 ? tally(t, s) : null,
+        s.current ? `${t('currentPackage')} ${s.current}` : null].filter(Boolean).join(' · ')
+    }
+    function RestoreProgress({ page, t }) {
+      const step = page.step, stages = progressStages(page.hasPackages)
+      const header = restoreHeader(t('progressTitle'), 'inProgress', 'active', 'sync', page.profile, t, 'title')
+      const waiting = h('div', { className: 'dpgsp-group' }, h('strong', null, t('waitingReceipt')),
+        h('div', { className: 'dpgsp-meter dpgsp-indeterminate', role: 'progressbar', 'aria-label': t('waitMeter') }), hint(t('waitHint')))
+      const list = step && h('ol', { className: 'dpgsp-timeline', 'aria-label': t('restoreSteps') }, stages.map((id, i) => {
+        const active = id === step.stage, done = i < stages.indexOf(step.stage)
+        const state = !done ? t(active ? 'stageActive' : 'stagePending') : id === 'check' ? t('checked')
+          : id === 'write' ? countText(t, 'changedCount', step.files) : step.total > 0 ? tally(t, step) : t('awaitingCheck')
+        const extra = !active ? null : id === 'install' ? h('div', { className: 'dpgsp-meterbox' },
+          h('strong', null, tally(t, step)), h('div', { className: 'dpgsp-meter', role: 'progressbar', 'aria-label': t('approvedMeter'),
+            'aria-valuemin': 0, 'aria-valuemax': step.total, 'aria-valuenow': step.processed, 'aria-valuetext': `${tally(t, step)}. ${t('meterHint')}` },
+          h('span', { className: 'dpgsp-fill', style: { width: `${100 * step.processed / step.total}%` } })),
+          step.current ? h('p', null, t('currentPackage'), ' ', mono(step.current)) : null, hint(t('meterHint')))
+          : hint(t(id === 'check' ? 'checkHint' : id === 'write' ? 'writeHint' : page.mode === 'standard' ? 'verifyHint' : 'verifyWriteHint'))
+        return h('li', { key: id, className: 'dpgsp-step', 'data-state': active ? 'active' : done ? 'done' : 'pending', 'aria-current': active ? 'step' : undefined },
+          h('span', { className: 'dpgsp-step-mark', 'aria-hidden': true }, done ? icon('check', 17) : null),
+          h('div', null, h('div', { className: 'dpgsp-step-line' }, h('strong', null, t(stageLabel(id, page))), h('span', null, state)), extra))
+      }))
+      return frame(h(React.Fragment, null, header, list || waiting), footer([], t('noRepeat')), t('progressTitle'))
+    }
+
+    function receiptSummary(receipt) {
       const { result: r, mode } = receipt
-      const attention = !!r.warnings?.length || (mode === 'standard' && (r.complete !== true || incomplete(r.plugins)))
-      const scripts = pendingBuilds(r.plugins)
-      const missing = verifiedInventory(r.plugins) ? r.plugins.missing : null
-      const retry = mode === 'standard' && missing?.length > 0
-      const results = Array.isArray(r.plugins?.results) ? r.plugins.results : []
-      const failed = results.filter(item => item?.outcome === 'failed').length
-      const skipped = results.filter(item => item?.outcome === 'skipped').length
+      const combined = mode === 'standard', verified = combined && verifiedReport(r.plugins)
+      const scripts = combined ? pendingBuilds(r.plugins) : []
+      const missing = verified ? r.plugins.missing.length : null
+      const wrote = r.report.restored > 0, unknown = combined && !verified
+      const key = unknown ? (wrote ? 'unknownPluginsTitle' : 'unknownOnly') : missing ? (wrote ? 'partialTitle' : 'missingOnly')
+        : scripts.length ? (wrote ? 'buildTitle' : 'buildsOnly') : r.warnings?.length || (combined && (!r.complete || incomplete(r.plugins)))
+          ? (wrote ? 'restoreAttention' : 'otherAttention') : 'restoreDone'
+      // Surface one verifiable problem before the disclosure. Do not guess why
+      // a package is missing or interpolate arbitrary installer output here.
+      const row = verified && (r.plugins.results.find(x => x.outcome === 'failed') ?? r.plugins.results.find(x => x.outcome === 'skipped'))
+      const problem = row ? { name: row.name, state: OUTCOMES[row.outcome],
+        reason: row.outcome === 'skipped' && txt(row.message) && Object.hasOwn(DICT.en, `note.${row.message}`) ? `note.${row.message}` : 'inspectInstall' }
+        : missing ? { name: r.plugins.missing[0].name, state: 'stillMissing', reason: 'inspectInstall' } : null
+      const restartKey = !receipt.restart ? null : wrote ? 'restartConfig' : 'restartPackages'
+      return { key, verified, unknown, missing, scripts, problem, restartKey, attention: key !== 'restoreDone' }
+    }
+    function RestoreReceipt({ receipt, t, undoButton, repreviewButton, backButton, alerts }) {
+      const head = (text, badge, tone, glyph) => restoreHeader(text, badge, tone, glyph, receipt.profile, t, 'restore-receipt')
+      if (receipt.mode === 'undo') return frame(h(React.Fragment, null, head(t('undoDone'), 'finished', 'good', 'check'),
+        h('p', null, countText(t, 'reverted', receipt.reverted), ' ', t('undoLimit'))))
+      if (receipt.mode === 'unknown') return frame(h(React.Fragment, null,
+        head(t('restoreUnverified'), 'needsCheck', 'attention', 'info'), h('p', null, t('uncertain')),
+        facts([[t('source'), isolated(receipt.source)]]), hint(errorText(t, receipt.error)),
+        details(t('inspectLocal'), hint(t('inspectConfigHint')), receipt.reviewedMode === 'standard' ? hint(t('inspectPackagesHint')) : null),
+        details(t('undoWhen'), hint(t('unknownUndo')), hint(t('undoScope')), hint(t('undoLimit'))), alerts),
+      footer([backButton, repreviewButton], t('readOnlyPreview')), t('restoreUnverified'))
+      const { result: r, mode } = receipt
+      const { key, verified, unknown, missing, scripts, problem, restartKey, attention } = receiptSummary(receipt)
+      const text = missing ? countText(t, key, missing) : t(key)
+      const counts = verified ? r.plugins.outcomeCounts : null
       return frame(h(React.Fragment, null,
-        h('header', null, resultTitle(attention ? 'restoreAttention' : 'restoreDone', attention ? 'info' : 'check'),
-          hint([countText(t, 'changedCount', changes(r.report)), verifiedReport(r.plugins) ? countText(t, 'installedCount', r.plugins.outcomeCounts.installed) : null,
-            receipt.restart ? t('restart') : null].filter(Boolean).join(' · '))),
-        facts([[t('source'), mode === 'local' ? isolated(receipt.fileName) : t('gistSource')]]),
-        scripts.length ? note(`${t('pendingBuilds')}: ${scripts.join(', ')}. ${t('buildHint')}`, 'shield') : null,
+        head(text, unknown ? 'needsCheck' : attention ? 'needsAttention' : 'finished', attention ? 'attention' : 'good', attention ? 'info' : 'check'),
+        facts([[t('configFiles'), r.report.restored ? countText(t, 'changedCount', r.report.restored) : t('filesSame')], counts && [t('pluginResults'),
+          [countText(t, 'installedCount', counts.installed), ...['already-present', 'failed', 'skipped'].filter(k => counts[k]).map(k => `${t(OUTCOMES[k])} ${counts[k]}`)].join(' · ')]]),
+        problem ? h('div', { className: 'dpgsp-group dpgsp-issue' }, h('strong', { className: 'dpgsp-line' }, icon('pkg', 16), mono(problem.name), ' · ', t(problem.state)), hint(t(problem.reason))) : null,
+        scripts.length ? box('warning', h('strong', null, t('pendingBuilds')), list(scripts, name => [mono(name)]), hint(t('buildHint'))) : null,
+        mode === 'standard' && !verified ? note(t('pluginUnknown')) : null,
         r.warnings?.length ? box('warning', h('strong', null, t('warnings')), list(r.warnings, w => [w])) : null,
-        mode === 'standard' && !verifiedReport(r.plugins) ? hint(t('pluginUnknown')) : null,
-        failed || skipped || missing?.length ? h('p', null, [failed ? `${t('failed')} ${failed}` : null, skipped ? `${t('skipped')} ${skipped}` : null, missing?.length ? `${t('stillMissing')} ${missing.length}` : null].filter(Boolean).join(' · ')) : null,
-        retry ? hint(t('retryHint')) : null,
+        restartKey ? note([t(restartKey), mode === 'standard' && attention ? t('restartLimit') : null].filter(Boolean).join(' ')) : null,
         details(t('resultDetails'), h('div', { className: 'dpgsp-stack' },
-          mode === 'local' ? null : facts([[t('source'), mono(r.ref.id)]]), h(FileChanges, { p: r.report, t }),
-          r.plugins ? heading(t('pluginResults'), h(PluginReport, { p: r.plugins, t })) : null))),
-        footer([undoButton, retry ? btn('preview-receipt-source', t('previewReceiptSource'), onRepreview, { disabled: locked }) : null], t('undoLimit')))
+          facts([[t('source'), mode === 'local' ? isolated(receipt.fileName) : mono(r.ref.id)]]), h(FileChanges, { p: r.report, t }),
+          mode === 'standard' && verified ? heading(t('pluginResults'), h(PluginReport, { p: r.plugins, t })) : null,
+          hint(t('undoLimit')))), alerts),
+        footer([backButton, undoButton, repreviewButton], repreviewButton ? t('readOnlyPreview') : null), text)
     }
     function ProfileStatus({ profile, stateKey, url, t }) {
       const [state, setState] = React.useState('idle')
@@ -844,7 +1149,7 @@ window.__ModuleLoader__.load({
         setBusy(label)
         setIssue(null)
         setAnnouncement('')
-        try { await task(call, active) }
+        try { await task(call, active, job.controller.signal) }
         catch (error) {
           if (active()) {
             if (onError) onError(error)
@@ -950,7 +1255,7 @@ window.__ModuleLoader__.load({
         move({ name: 'preview', mode, id })
         return run('previewBusy', false, async call => {
           const data = await call(mode === 'config' ? '/config/preview' : '/sync/preview', { id, ...token })
-          if (!validCloudPlan(data, mode, id)) throw fail('bad-response')
+          if (!validCloudPlan(data, mode, id) || data.preview.profile !== status.profile) throw fail('bad-response')
           displayPlan({ ...data, mode })
         }, error => setIssue({ error, repair: repairable(error) }))
       }
@@ -969,19 +1274,16 @@ window.__ModuleLoader__.load({
         const p = selected.current
         if (locked || flight.current || !p || p !== page.plan || !actionable(p)) return
         selected.current = null // one-shot; even a lost response needs a new preview
-        move({ name: 'preview', mode: p.mode, id: p.ref?.id, fileName: p.fileName })
-        return run('applyBusy', true, async (call, active) => {
-          const route = p.mode === 'local' ? '/restore' : p.mode === 'config' ? '/config/restore' : '/sync/install'
-          const r = await call(route, { planId: p.planId, confirm: true })
-          if (!validRestore(r, p)) throw fail('bad-response')
-          setRestoreReceipt({ mode: p.mode, result: r, fileName: p.fileName, restart: p.mode === 'local' ? changes(r.report) > 0 : r.restart })
-          move({ name: 'home' }, 'restore-receipt')
-          await afterWrite(call, active)
-        }, error => {
-          const uncertain = consumedPlanError(error)
-          if (uncertain) setRestoreReceipt({ mode: 'unknown', local: p.mode === 'local', source: p.ref?.id ?? p.fileName })
-          setIssue({ error, uncertain })
-        })
+        move(progressPage(p))
+        return run('applyBusy', true, (call, active, signal) => runReviewed(p, signal, {
+          active, progress: step => setPage(old => old.name === 'progress' ? { ...old, step } : old),
+          settle(next, error) {
+            if (next.receipt) setRestoreReceipt(next.receipt)
+            move(next, next.receipt ? 'restore-receipt' : 'title')
+            if (!next.receipt) setIssue({ error })
+          },
+          refresh: () => afterWrite(call, active), // local GET only
+        }))
       }
       function chooseFile(event) {
         const file = event.currentTarget.files?.[0]
@@ -997,7 +1299,7 @@ window.__ModuleLoader__.load({
           let backup
           try { backup = JSON.parse(text) } catch { throw fail('invalidJson') }
           const r = await call('/preview', { backup, reviewed: true })
-          if (!txt(r.planId) || !filePlan(r.preview)) throw fail('bad-response')
+          if (!txt(r.planId) || !filePlan(r.preview) || r.preview.profile !== status.profile || r.ref != null || r.plugins != null) throw fail('bad-response')
           displayPlan({ mode: 'local', fileName: file.name, planId: r.planId, preview: r.preview })
         })
       }
@@ -1121,7 +1423,7 @@ window.__ModuleLoader__.load({
           sent = true
           const r = await call('/undo', { expectedStamp: reviewed.stamp })
           if (r.report?.stamp !== reviewed.stamp || !number(r.report.reverted)) throw fail('bad-response')
-          setRestoreReceipt({ mode: 'undo', reverted: r.report.reverted })
+          setRestoreReceipt({ mode: 'undo', profile: s.profile, reverted: r.report.reverted })
           move({ name: 'home' }, 'restore-receipt')
           await afterWrite(call, active)
         }, error => setIssue({ error, uncertain: sent && consumedPlanError(error) }))
@@ -1185,8 +1487,27 @@ window.__ModuleLoader__.load({
         const href = gistLink({ id })
         return href ? h('a', { className: 'dpgsp-link', href, target: '_blank', rel: 'noopener noreferrer', referrerPolicy: 'no-referrer' }, href) : isolated(id ?? t('newGist'))
       }
-      const receiptStamp = restoreReceipt?.result?.report?.undoStamp
-      const receiptUndo = txt(receiptStamp) && receiptStamp === status?.undo?.stamp ? btn('undo-review', t('undo'), rootAction('restore', () => openUndo(receiptStamp)), { disabled: locked }) : null
+      // The local status read that follows a receipt may still be in flight.
+      // Returning home does not cancel it or unlock any other operation early.
+      const leaveReceipt = () => move({ name: 'home' }, opener.current)
+      function receiptView(main = false) {
+        const receipt = main ? page.receipt : restoreReceipt
+        if (!receipt) return null
+        const mode = receipt.reviewedMode ?? receipt.mode
+        const recheck = receipt.mode === 'unknown' || (receipt.result && receiptSummary(receipt).attention)
+        const readAgain = () => {
+          if (locked || flight.current) return
+          opener.current = mode === 'standard' ? 'restore' : 'more'
+          if (mode === 'local') move({ name: 'local' }, 'pick')
+          else prepare(mode, receipt.result?.ref.id ?? receipt.source)
+        }
+        const stamp = matchingUndo(receipt, status)
+        return h(RestoreReceipt, { receipt, t,
+          backButton: main ? btn('back', t('back'), leaveReceipt) : null,
+          undoButton: stamp ? btn('undo-review', t('undo'), () => openUndo(stamp), { disabled: locked }) : null,
+          repreviewButton: recheck ? btn('preview-receipt-source', t(mode === 'local' ? 'chooseAgain' : 'previewReceiptSource'), readAgain, { disabled: locked }) : null,
+          alerts: main && (statusError || issue || uploadCheck) ? alerts(true) : null })
+      }
       const intro = (key, subtitle) => h('header', null, title(t(key)), subtitle ? h('p', { className: 'dpgsp-intro' }, t(subtitle)) : null)
       function homeView() {
         const uploaded = targetId && backupReceipt?.ref?.id === targetId ? backupReceipt : null
@@ -1210,7 +1531,7 @@ window.__ModuleLoader__.load({
             alerts(!status && !statusError), status && !normal ? box('warning', h('p', null, t('staleHost')),
               h('div', { className: 'dpgsp-actions' }, btn('retry-status', t('statusRetry'), retryStatus, { disabled: !!busy }))) : null)) : null,
           normal && dropped.length ? frame(details(`${t('droppedDeps')} (${uploaded.droppedEntries ?? dropped.length})`, list(dropped, row => [isolated(row.name), mono(row.spec ?? '')]))) : null,
-          normal && restoreReceipt ? h(RestoreReceipt, { receipt: restoreReceipt, t, undoButton: receiptUndo, locked, onRepreview: rootAction('restore', () => prepare('standard', restoreReceipt.result.ref.id)) }) : null)
+          normal && restoreReceipt ? receiptView() : null)
       }
       function sourceView() {
         return frame(h(React.Fragment, null, intro(page.mode === 'config' ? 'configMode' : 'restore', 'sourceIntro'),
@@ -1306,16 +1627,19 @@ window.__ModuleLoader__.load({
           box('warning', h('strong', null, t('undoLimit')), h('p', null, t('undoScope')))) : page.snapshot === null ? hint(t('undoNone')) : null,
           alerts()), footer(buttons))
       }
-      const views = { home: homeView, source: sourceView, preview: previewView, backup: backupView, local: localView, plugins: pluginsView, target: targetView, diagnostics: diagnosticsView, undo: undoView }
-      const visible = !status || !compatible(status) ? 'home' : page.name
+      const views = { home: homeView, source: sourceView, preview: previewView, progress: () => h(RestoreProgress, { page, t }), receipt: () => receiptView(true),
+        backup: backupView, local: localView, plugins: pluginsView, target: targetView, diagnostics: diagnosticsView, undo: undoView }
+      const visible = page.name === 'receipt' || (status && compatible(status)) ? page.name : 'home'
+      const liveText = visible === 'progress' ? progressStatus(page, t) : announcement ? t(announcement) : ''
       return h('div', { ref: root, className: 'dpgsp-root', 'data-view': visible, 'data-mode': page.mode,
         onKeyDown: e => {
           if (e.key !== 'Escape' || e.defaultPrevented || e.nativeEvent?.isComposing) return
+          if (page.name === 'receipt') { e.preventDefault(); e.stopPropagation(); leaveReceipt(); return }
           if (flight.current?.write) { e.preventDefault(); e.stopPropagation(); return }
           if (menu) { e.preventDefault(); e.stopPropagation(); setMenu(false); moreButton.current?.focus() }
           else if (page.name !== 'home') { e.preventDefault(); e.stopPropagation(); home() }
         } }, h('style', null, CSS), views[visible](),
-        h('p', { className: !announcement || announcement === 'reviewDone' ? 'dpgsp-sr' : 'dpgsp-hint', role: 'status', 'aria-live': 'polite', 'aria-atomic': true }, announcement ? t(announcement) : ''))
+        h('p', { className: !announcement || announcement === 'reviewDone' ? 'dpgsp-sr' : 'dpgsp-hint', role: 'status', 'aria-live': 'polite', 'aria-atomic': true }, liveText))
     }
     return {
       inject: ['slots', 'locale'],

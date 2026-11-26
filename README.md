@@ -10,15 +10,17 @@ An independent [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harnes
 
 ### 在另一台机器安装
 
-1. 打开 DSH 的 **插件 → 添加插件**，输入 npm 包名 **`dsh-multi-device-config-sync`**，确认安装。要固定到本版，输入 `dsh-multi-device-config-sync@1.5.0`。安装公开包不用登录 npm，也不用复制 Git 提交地址。
+1. 打开 DSH 的 **插件 → 添加插件**，输入 npm 包名 **`dsh-multi-device-config-sync`**，确认安装。要固定到本版，输入 `dsh-multi-device-config-sync@1.6.0`。安装公开包不用登录 npm，也不用复制 Git 提交地址。
 2. 安装完成后点 **立即启用**。再打开 **设置 → 多端配置同步 → 从备份恢复**，粘贴已有备份链接。先看预览，取消不会写入。
 
-**已经装过旧 Git 版？** `dsh-profile-gist-sync-plus`（原「配置同步 Plus」）与 npm 版是同一个插件的两个安装包，不能同时启用。先确认[公开 npm 版本](https://www.npmjs.com/package/dsh-multi-device-config-sync/v/1.5.0)在本机可访问，再在同一配置的插件管理中移除旧包、添加并启用新包；保留 `.dsh-config-sync-plus/` 目录，就能继续使用已有绑定和撤销记录。另一台机器全新安装不需要先装旧版。上游原版 `dsh-profile-gist-sync` 是另一个插件，不用移除。
+**从 npm 版升级：** 在插件页对已安装的 `dsh-multi-device-config-sync` 选择更新到 `1.6.0`。如果旧版 DSH 没有提供「更新」，先确认下面的公开版本可访问，再通过插件管理移除旧版本、添加 `dsh-multi-device-config-sync@1.6.0` 并启用。不要删除配置目录里的 `.dsh-config-sync-plus/`；已有的备份绑定和撤销记录不需要迁移。
+
+**已经装过旧 Git 版？** `dsh-profile-gist-sync-plus`（原「配置同步 Plus」）与 npm 版是同一个插件的两个安装包，不能同时启用。先确认[公开 npm 版本](https://www.npmjs.com/package/dsh-multi-device-config-sync/v/1.6.0)在本机可访问，再在同一配置的插件管理中停用旧 Git **安装包**，然后添加并启用 npm 包。可以先保留已停用的旧包用于回退，不要同时启用；保留 `.dsh-config-sync-plus/` 目录，就能继续使用已有绑定和撤销记录。另一台机器全新安装不需要先装旧版。上游原版 `dsh-profile-gist-sync` 是另一个插件，不用移除。
 
 命令行也可安装。将 `web` 换成目标配置名；使用 CLI 前先退出正在使用该配置的 DSH，Desktop 配置需已由应用初始化。
 
 ```sh
-dsh plugin --profile web add dsh-multi-device-config-sync@1.5.0
+dsh plugin --profile web add dsh-multi-device-config-sync@1.6.0
 ```
 
 ### 迁移一台机器
@@ -34,7 +36,8 @@ dsh plugin --profile web add dsh-multi-device-config-sync@1.5.0
 - **哪些配置会恢复？** 默认恢复流程合并 bundle 选择，恢复 Cordis 配置、`data/`、`suppliers/`、`config/`、`presets/` 下的可迁移文件，以及其他位置的普通 JSON、YAML、TOML 等文本配置。预览会列出跳过项；本机包管理策略（如 `.npmrc`、`pnpm-workspace.yaml`、manifest 脚本及构建授权）、环境文件和未托管的脚本保留不动。
 - **同步插件本身不会随清单迁移。** 预览会标出备份清单里跳过的新旧同步包声明。已有 npm 包沿用本机的安装来源和启用选择；旧 Git 包不会被当作缺失插件重新加回。即使是「仅恢复配置」或本地 JSON 导入，这两项也不覆盖。
 - **哪些插件会补装？** 只将备份声明且来源可解析的其他缺失项交给 DSH 安装器。不把依赖声明当成“已安装”，不升级已有版本，也不会为仅有 bundle 名或本地路径的条目猜 npm 包。如果本机已有依赖声明但实际缺包，且 DSH 拒绝安装，结果会显示仍未补齐；本插件不改包名，也不绕过安装器。请到 DSH 插件页核对该项。
-- **查看每项结果。** 个别失败不等于全部完成。待批准的构建脚本要在 DSH 插件管理中单独审阅；本插件不代为批准。要重试或计划已过期，请重新预览。没有可用的插件管理服务时可从「更多」选择**仅恢复配置**，重新核对不同的文件范围。恢复后的配置或软件包可能要重启 DSH 才生效；安装成功不等于运行中的插件已经切换。
+- **进度条怎么看？** 确认后，预览的位置会显示本次恢复：先核对清单和写入配置，需要补装时再显示正在安装的包及「已处理 N / M 个」，最后核对安装结果。M 只数本次确认可补装的插件；N 不是成功数，也不是整次恢复的百分比。仅恢复配置和本地导入不会出现安装步骤。旧服务或尚未收到阶段信息时只显示等待提示，不猜剩余时间。
+- **查看每项结果。** 配置已写入但有插件未装好时，回执会把两者分开。若连接在回执到达前断开，部分操作可能已完成：先核对本机状态，再重新预览；不要直接重复提交。待批准的构建脚本要在 DSH 插件管理中单独审阅；本插件不代为批准。要重试或计划已过期，请重新预览。没有可用的插件管理服务时可从「更多」选择**仅恢复配置**，重新核对不同的文件范围。恢复后的配置或软件包可能要重启 DSH 才生效；安装成功不等于运行中的插件已经切换。
 - **仅恢复配置/从本地 JSON 导入是独立操作。** 它们各自显示完整文件范围的预览并要求确认，而非直接写入，也不会继承标准预览的跳过规则。它们沿用上游的配置合并方式：本地独有文件保留，同名配置可能被覆盖，manifest 中的依赖和 bundle 名合并（除同步插件本身外，同名依赖采用备份规格）。不会自动补装插件；不要把默认流程对包管理设置的保护误认为适用于所有导入操作。
 - **撤销只恢复本次真正写入的配置文件，不卸载软件包。** 预览中标为「不变」的文件不写入，也不纳入撤销；只有补装插件而没有配置变更时，不会创建空的撤销点。 已下载的依赖和构建脚本的副作用不在撤销范围；若需删除软件包，在 DSH 的插件管理中处理。保留自己的离线备份。
 
@@ -49,16 +52,19 @@ dsh plugin --profile web add dsh-multi-device-config-sync@1.5.0
 
 ### Install on another machine
 
-In DSH, open **Plugins → Add plugin** and enter **`dsh-multi-device-config-sync`** (or `dsh-multi-device-config-sync@1.5.0` to pin this release). You do not need an npm login to install a public package. Choose **Enable now** once installation finishes, then open **Settings → Multi-device config sync → Restore from backup** and preview your existing backup link. For CLI installation, see the command above; substitute your profile name and stop DSH using that profile first.
+In DSH, open **Plugins → Add plugin** and enter **`dsh-multi-device-config-sync`** (or `dsh-multi-device-config-sync@1.6.0` to pin this release). You do not need an npm login to install a public package. Choose **Enable now** once installation finishes, then open **Settings → Multi-device config sync → Restore from backup** and preview your existing backup link. For CLI installation, see the command above; substitute your profile name and stop DSH using that profile first.
 
-**Switching from the Git edition?** The old `dsh-profile-gist-sync-plus` package and the new npm package implement the same plugin. Do not enable them together. First check that the [npm version](https://www.npmjs.com/package/dsh-multi-device-config-sync/v/1.5.0) is accessible. In the same profile, remove the old package in Plugins, then add and enable the new one. Leave `.dsh-config-sync-plus/` in place to keep the linked destination and undo history. The separate upstream `dsh-profile-gist-sync` plugin is unaffected.
+**Upgrading an existing npm installation:** In Plugins, update the installed `dsh-multi-device-config-sync` package to `1.6.0`. If your version of DSH offers no Update action, first confirm the public version is accessible, then remove the old version in Plugins, add `dsh-multi-device-config-sync@1.6.0`, and enable it. Leave the profile’s `.dsh-config-sync-plus/` directory in place; the linked destination and undo history need no migration.
+
+**Switching from the Git edition?** The old `dsh-profile-gist-sync-plus` package and the new npm package implement the same plugin. Do not enable them together. First check that the [npm version](https://www.npmjs.com/package/dsh-multi-device-config-sync/v/1.6.0) is accessible. In the same profile, turn off the old Git **bundle** in Plugins, then add and enable the npm package. The old bundle can be left installed but disabled as a fallback. Leave `.dsh-config-sync-plus/` in place to keep the linked destination and undo history. The separate upstream `dsh-profile-gist-sync` plugin is unaffected.
 
 ### Back up, preview, confirm
 
 1. **On the source machine**, inspect a JSON export under **More → Local backup files**, then choose **Back up this machine**. An unlinked machine creates an unlisted Gist; an existing destination is shown before updating. Choose **Copy link** on the inline receipt. The home page keeps the full destination out of view; use **More → Manage backup destination** or the update confirmation to inspect it.
 2. **On the destination**, choose **Restore from backup**. Paste a trusted Gist link or ID if one has not been linked. With a linked destination, go straight to the preview or choose another source. Review file changes, already-present plugins, exact installation sources and items requiring manual setup. Previewing or cancelling neither writes profile files nor installs packages.
 3. **Restore and install N plugins** applies the previewed snapshot, not a fresh download. If only files change, the action confirms configuration only; if nothing changes there is no write. Restoring from a source does not change your upload destination. It merges bundle selections and restores Cordis configuration, portable files under `data/`, `suppliers/`, `config/` and `presets/`, and ordinary text configuration such as JSON, YAML and TOML elsewhere in the profile. The preview shows what will be skipped. Local package-manager policy (including `.npmrc`, `pnpm-workspace.yaml`, manifest scripts and build approvals), environment files and unmanaged scripts stay on this machine.
-4. **Read the per-package results.** Only resolvable missing packages declared in the backup go to DSH’s installer. The plugin does not upgrade installed versions or guess sources from bundle names or machine-local paths. A local dependency declaration does not prove the package is present: if the files are missing and DSH refuses the install, the plugin reports that the package is still missing. It does not rename the package or bypass the installer. Check that entry in Plugins. Review pending builds separately there; this plugin never approves them. Re-preview to retry failures or replace an expired plan. If the plugin manager is unavailable, use the separate **configuration-only** operation. Restart DSH as indicated to activate restored settings or packages; a successful install does not prove live activation.
+4. **Follow the restore in place.** After confirmation the preview becomes a progress card. Its package bar counts reviewed packages with an installer outcome, not successful installations or the percentage of the whole restore. A final inventory check decides which packages are present. Configuration-only and local imports have no package step. With an older host or no stage details, the panel waits without guessing a percentage or finish time.
+5. **Read the per-package results.** Written configuration and unresolved packages are reported separately. If the connection ends before a receipt arrives, check this profile before previewing again; do not resubmit the write. Only resolvable missing packages declared in the backup go to DSH’s installer. The plugin does not upgrade installed versions or guess sources from bundle names or machine-local paths. A local dependency declaration does not prove the package is present: if the files are missing and DSH refuses the install, the plugin reports that the package is still missing. It does not rename the package or bypass the installer. Check that entry in Plugins. Review pending builds separately there; this plugin never approves them. Re-preview to retry failures or replace an expired plan. If the plugin manager is unavailable, use the separate **configuration-only** operation. Restart DSH as indicated to activate restored settings or packages; a successful install does not prove live activation.
 
 The preview lists incoming declarations for this sync plugin (both its old Git name and its npm name) as skipped. The profile keeps its local choice of sync package, source and activation; a backup cannot reinstall the old edition through its manifest. This also applies to configuration-only and local imports.
 
@@ -88,6 +94,8 @@ Install the npm package `dsh-multi-device-config-sync`. For compatibility its Co
 | `POST /api/sync` | Legacy immediate configuration-only sync, retained for compatibility. The settings page never calls this endpoint. |
 | `GET /api/plugins`, `POST /api/plugins/install` | Inspect or separately install the **local** profile’s missing declarations. The page passes `expectedPackages` from that review; a new name or changed source cannot be installed in its place. |
 | `POST /api/undo` | Revert this plugin’s latest configuration snapshot; never uninstall packages. The page sends `expectedStamp` to avoid undoing a different snapshot. |
+
+**Optional progress (1.6+).** On the three **reviewed confirmation** POSTs, send `Accept: application/x-ndjson` for UTF-8, newline-delimited records on the same response. The request still contains only `{ planId, confirm: true }`. `type: "progress"` reports `check`, `write`, `install` or `verify` as work occurs. An `install` record includes `files` (configuration files already committed), `processed`, `total` and `current` (an approved package name or `null`); it does not include a package source, Gist ID or file contents. A `result` record carries the usual final receipt in `result`; an `error` record ends an already-started stream. Before streaming, errors can still be ordinary HTTP JSON responses. An old host or client uses the previous JSON receipt. Never replay a confirmation because a connection closed, a progress record was missing or a terminal receipt could not be verified. Reading progress does not start an extra request or grant any authority.
 
 Agent tool: **`config_backup_plus`**. Actions: `status`, `export`, `gist_upload`, `gist_read`, `restore`, `undo`. `gist_read` and `restore` preview by default; `apply: true` writes **configuration only**. Local exports stay in the fork’s exports directory. A tool restore from a file accepts paths inside the DSH home. There is **no tool action to install a plan, confirm on the user’s behalf, or grant build-script approvals**.
 
